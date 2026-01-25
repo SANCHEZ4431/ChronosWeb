@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chronos Web Panel</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background: #0f0f0f; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: #1a1a1a; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 320px; text-align: center; border: 1px solid #333; }
+        h1 { color: #f39c12; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; background: #222; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #f39c12; color: black; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #e67e22; }
+        .hidden { display: none; }
+        .profile-data { text-align: left; margin-top: 20px; background: #252525; padding: 15px; border-radius: 10px; }
+        .stat-item { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="authBox">
+        <h1>Chronos Login</h1>
+        <p style="font-size: 0.9em; color: #888;">Введите код из бота (/web)</p>
+        <input type="text" id="authCode" placeholder="Код авторизации">
+        <button onclick="attemptLogin()">Войти</button>
+    </div>
+
+    <div class="container hidden" id="profileBox">
+        <h1 id="welcomeName">Привет!</h1>
+        <div class="profile-data">
+            <div class="stat-item"><span>💰 Баланс:</span> <b id="valBalance">0</b></div>
+            <div class="stat-item"><span>📊 Уровень:</span> <b id="valLevel">0</b></div>
+            <div class="stat-item"><span>✨ Опыт:</span> <b id="valExp">0</b></div>
+            <div class="stat-item"><span>🛡️ Клан:</span> <b id="valClan">-</b></div>
+        </div>
+        <br>
+        <button onclick="logout()" style="background: #c0392b; color: white;">Выйти</button>
+    </div>
+
+    <script>
+        // Укажите здесь IP вашего сервера, где запущен бот
+        const API_BASE = "http://localhost:8080/api";
+
+        async function attemptLogin() {
+            const code = document.getElementById('authCode').value;
+            try {
+                const res = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    body: JSON.stringify({ code: code.trim() }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    localStorage.setItem('tg_user_id', data.user_id);
+                    loadProfile(data.user_id);
+                } else {
+                    alert("Неверный код!");
+                }
+            } catch (e) {
+                alert("Сервер бота недоступен");
+            }
+        }
+
+        async function loadProfile(userId) {
+            const res = await fetch(`${API_BASE}/user/${userId}`);
+            const data = await res.json();
+
+            document.getElementById('welcomeName').innerText = data.username;
+            document.getElementById('valBalance').innerText = data.balance.toLocaleString();
+            document.getElementById('valLevel').innerText = data.level;
+            document.getElementById('valExp').innerText = data.exp;
+            document.getElementById('valClan').innerText = data.clan;
+
+            document.getElementById('authBox').classList.add('hidden');
+            document.getElementById('profileBox').classList.remove('hidden');
+        }
+
+        function logout() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        // Проверка сессии при загрузке
+        window.onload = () => {
+            const savedId = localStorage.getItem('tg_user_id');
+            if (savedId) loadProfile(savedId);
+        }
+    </script>
+</body>
+</html>
