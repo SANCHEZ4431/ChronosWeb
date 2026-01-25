@@ -1,0 +1,33 @@
+{
+  "name": "hello-express",
+  "version": "0.0.1",
+  "description": "A simple Node app built on Express",
+  "main": "server_code.js",
+  "scripts": {
+    "start": "node server_code.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.5.0",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "mongoose": "^7.6.1",
+    "cors": "^2.8.5",
+    "moment": "^2.29.4",
+    "connect-mongo": "^5.0.0",
+    "multer": "^1.4.5-lts.1",
+    "fs-extra": "^11.1.1",
+    "googleapis": "^124.0.0",
+    "socket.io": "^4.7.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/SANCHEZ4431/AssetViewer.git"
+  },
+  "license": "MIT"
+}
