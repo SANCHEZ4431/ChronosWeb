@@ -2,24 +2,35 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const User = require('./models/data');
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
 require('dotenv').config();
+
+const User = require('./data');
 
 const app = express();
 const port = process.env.PORT || 3000;
+const MONGO_URI = "mongodb+srv://SANCHEZ4431:KALENDAR4431@assetviewer.sikwig9.mongodb.net/telegram_bot?retryWrites=true&w=majority&appName=AssetViewer";
 
-// Middleware
+// === Middleware ===
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // Папка, где лежит ваш HTML
+app.use(express.static('public'));
 
-// Подключение к MongoDB (AssetViewer Cluster)
-// MONGO_URI в .env должен быть: mongodb+srv://user:pass@assetviewer.xxxx.mongodb.net/telegram_bot
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Успешное подключение к кластеру AssetViewer [База: telegram_bot]'))
-  .catch(err => console.error('Ошибка подключения к MongoDB:', err));
+// === Подключение к MongoDB ===
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('✅ Connected to AssetViewer: telegram_bot database'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// --- API Роуты ---
+// === Сессии ===
+app.use(session({
+  secret: 'chronos_secret_777',
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: MONGO_URI })
+}));
+
+// === API Routes ===
 
 // Получить всех пользователей
 app.get('/api/users', async (req, res) => {
@@ -27,7 +38,7 @@ app.get('/api/users', async (req, res) => {
     const users = await User.find({}).sort({ level: -1 });
     res.json(users);
   } catch (err) {
-    res.status(500).json({ error: 'Ошибка БД' });
+    res.status(500).json({ error: 'Database error' });
   }
 });
 
@@ -59,11 +70,7 @@ app.post('/api/unban', async (req, res) => {
   }
 });
 
-// Главная страница админки
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
+// Запуск сервера
 app.listen(port, () => {
-  console.log(`Сервер Chronos запущен на http://localhost:${port}`);
+  console.log(`🚀 Chronos Admin Panel ready at http://localhost:${port}`);
 });
