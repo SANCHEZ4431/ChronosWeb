@@ -1,107 +1,51 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
-const cors = require('cors');
-const fs = require('fs');
-const moment = require('moment');
 const mongoose = require('mongoose');
-const MongoStore = require('connect-mongo');
-const session = require('express-session');
-const crypto = require('crypto');
-const multer = require('multer');
+const cors = require('cors');
 const path = require('path');
-const fsExtra = require('fs-extra');
-const { google } = require('googleapis');
-const User = require('./models/data'); // Твоя новая модель для Chronos
+const User = require('./models/data');
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-const http = require('http').createServer(app);
-const { Server } = require('socket.io');
-const io = new Server(http, {
-  cors: { origin: '*' }
-});
-
-// === Socket.io (Твой чат) ===
-const chatUsers = new Map();
-io.on('connection', socket => {
-  socket.on('registerUser', (username) => {
-    chatUsers.set(username, socket);
-    socket.username = username;
-  });
-  socket.on('sendMessage', ({ to, from, message }) => {
-    if (chatUsers.has(to)) {
-      chatUsers.get(to).emit('receiveMessage', { from, message });
-    }
-  });
-  socket.on('disconnect', () => {
-    if (socket.username) chatUsers.delete(socket.username);
-  });
-});
-
-// === Настройки ===
+// Middleware
 app.use(cors());
-app.use(express.json({ limit: '20mb' }));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.use(express.json());
+app.use(express.static('public')); // Папка, где лежит ваш HTML
 
-// === MongoDB Connection ===
+// Подключение к MongoDB (AssetViewer Cluster)
+// MONGO_URI в .env должен быть: mongodb+srv://user:pass@assetviewer.xxxx.mongodb.net/telegram_bot
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Connected to Chronos MongoDB Atlas'))
-  .catch(err => console.error('MongoDB error:', err));
+  .then(() => console.log('Успешное подключение к кластеру AssetViewer [База: telegram_bot]'))
+  .catch(err => console.error('Ошибка подключения к MongoDB:', err));
 
-// === Сессии ===
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'chronos_secret_key',
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URI,
-    collectionName: 'sessions'
-  })
-}));
+// --- API Роуты ---
 
-// === Google Drive & Encryption Helpers (Твои оригинальные) ===
-function xorDecrypt(bytes, mask) { return bytes.map(b => b ^ mask); }
-
-function getKeyAndIV() {
-  const encryptedKeyBytes = process.env.ENCRYPTED_KEY_BYTES.split(',').map(Number);
-  const encryptedIVBytes = process.env.ENCRYPTED_IV_BYTES.split(',').map(Number);
-  const mask = parseInt(process.env.XOR_MASK);
-  return {
-    key: Buffer.from(xorDecrypt(encryptedKeyBytes, mask)),
-    iv: Buffer.from(xorDecrypt(encryptedIVBytes, mask))
-  };
-}
-
-// === API ДЛЯ АДМИН ПАНЕЛИ CHRONOS ===
-
-// 1. Получение списка всех юзеров из бота
+// Получить всех пользователей
 app.get('/api/users', async (req, res) => {
   try {
     const users = await User.find({}).sort({ level: -1 });
     res.json(users);
   } catch (err) {
-    res.status(500).json({ error: 'Ошибка получения данных' });
+    res.status(500).json({ error: 'Ошибка БД' });
   }
 });
 
-// 2. Бан пользователя (по user_id бота)
+// Бан пользователя
 app.post('/api/ban', async (req, res) => {
   const { user_id, reason } = req.body;
   try {
     await User.findOneAndUpdate(
       { user_id: parseInt(user_id) },
-      { is_banned: true, ban_reason: reason }
+      { is_banned: true, ban_reason: reason || 'Нарушение правил' }
     );
-    res.json({ success: true, message: 'Пользователь забанен' });
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false });
   }
 });
 
-// 3. Разбан
+// Разбан
 app.post('/api/unban', async (req, res) => {
   const { user_id } = req.body;
   try {
@@ -115,53 +59,11 @@ app.post('/api/unban', async (req, res) => {
   }
 });
 
-// 4. Редактирование ресурсов (Монеты/Эссенция)
-app.post('/api/edit-resources', async (req, res) => {
-    const { user_id, coins, essence } = req.body;
-    try {
-        await User.findOneAndUpdate(
-            { user_id: parseInt(user_id) },
-            { $set: { coins: parseInt(coins), essence: parseInt(essence) } }
-        );
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+// Главная страница админки
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// === ТВОИ ОРИГИНАЛЬНЫЕ РОУТЫ (Логи, Дешифровка) ===
-
-app.post('/admin-login', (req, res) => {
-  const { username, password } = req.body;
-  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-    req.session.adminLoggedIn = true;
-    res.redirect('/admin');
-  } else {
-    res.send('Ошибка входа');
-  }
-});
-
-app.get('/admin', (req, res) => {
-  req.session.adminLoggedIn 
-    ? res.sendFile(path.join(__dirname, 'public', 'admin.html')) 
-    : res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-app.post('/api/decrypt', (req, res) => {
-  const { lines } = req.body;
-  const { key, iv } = getKeyAndIV();
-  try {
-    const decrypted = lines.map(line => {
-      const decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
-      return decipher.update(Buffer.from(line, 'base64'), null, 'utf8') + decipher.final('utf8');
-    });
-    res.json({ decrypted });
-  } catch (err) {
-    res.status(500).json({ error: 'Ошибка дешифровки' });
-  }
-});
-
-// === Запуск ===
-http.listen(port, () => {
-  console.log(`Админ-панель Chronos запущена на порту ${port}`);
+app.listen(port, () => {
+  console.log(`Сервер Chronos запущен на http://localhost:${port}`);
 });
