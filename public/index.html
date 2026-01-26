@@ -81,6 +81,25 @@
   </div>
 
   <script>
+
+    // Проверка авторизации при загрузке
+    if (localStorage.getItem('isLogged') !== 'true') {
+      window.location.href = '/login.html';
+    }
+    
+    // Твоя функция loadUsers() теперь будет получать 401 ошибку, если сессия истекла
+    async function loadUsers() {
+      const res = await fetch('/api/users');
+      if (res.status === 401) {
+        localStorage.removeItem('isLogged');
+        window.location.href = '/login.html';
+        return;
+      }
+      allUsers = await res.json();
+      renderTable(allUsers);
+    }
+
+    
     let allUsers = []; // Здесь храним всех загруженных юзеров
 
     async function loadUsers() {
