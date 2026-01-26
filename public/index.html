@@ -46,7 +46,6 @@
             padding: 40px 25px; 
         }
 
-        /* --- Header --- */
         header {
             display: flex;
             justify-content: space-between;
@@ -83,7 +82,6 @@
 
         .stat-pill span { color: var(--accent); font-weight: 800; }
 
-        /* --- Main Data Table --- */
         .table-card {
             background: var(--surface);
             border-radius: 20px;
@@ -134,7 +132,6 @@
         .badge-vip { background: var(--vip); color: #000; box-shadow: 0 0 15px rgba(241, 196, 15, 0.3); }
         .badge-admin { background: var(--admin); color: #fff; box-shadow: 0 0 15px rgba(255, 51, 102, 0.3); }
 
-        /* --- Editor Modal --- */
         #overlay { 
             display: none; 
             position: fixed; 
@@ -193,7 +190,6 @@
             to { opacity: 1; transform: translateY(0); } 
         }
 
-        /* --- Form Elements --- */
         .editor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
         .card-box { 
             background: rgba(255,255,255,0.02); 
@@ -226,7 +222,6 @@
         }
         input:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
 
-        /* --- Inventory Styles --- */
         .inv-wrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
         .item-tile { 
             background: var(--bg); 
@@ -241,7 +236,6 @@
         .item-tile .name { display: block; font-weight: 800; margin-bottom: 5px; font-size: 13px; }
         .item-tile .val { font-family: 'Fira Code'; color: var(--accent); font-size: 16px; }
 
-        /* --- UI Buttons --- */
         .modal-footer { padding: 25px 40px; background: var(--surface-light); display: flex; justify-content: flex-end; gap: 20px; }
         .btn { 
             padding: 14px 30px; 
@@ -253,6 +247,7 @@
             transition: 0.3s;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
         }
         .btn-save { background: var(--accent); color: #000; }
@@ -333,14 +328,14 @@
                 <div class="card-box">
                     <h3>🛡️ Privileges</h3>
                     <label>Admin Rights</label>
-                    <select id="v-is-admin">
+                    <select id="v-is-admin" onchange="toggleAdmin(this.value)">
                         <option value="false">Standard User</option>
                         <option value="true">System Administrator</option>
                     </select>
                     <label>VIP Subscription</label>
-                    <div id="vip-info" style="font-size: 11px; margin-bottom: 10px;"></div>
-                    <button class="btn btn-save" style="width:100%; justify-content:center;" onclick="grantVip()">Extend VIP +30 Days</button>
-                    <button class="btn btn-close" style="width:100%; margin-top:10px; justify-content:center;" onclick="revokeVip()">Revoke VIP</button>
+                    <div id="vip-info" style="font-size: 11px; margin-bottom: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;"></div>
+                    <button class="btn btn-save" style="width:100%; margin-bottom:10px;" onclick="grantVip()">Extend VIP +30 Days</button>
+                    <button class="btn btn-close" style="width:100%; color: var(--danger);" onclick="revokeVip()">Revoke VIP</button>
                 </div>
             </div>
         </div>
@@ -367,6 +362,7 @@
                         <option value="Talisman of Knowledge">Talisman of Knowledge</option>
                         <option value="Golden Purse">Golden Purse</option>
                         <option value="Void Star">Void Star</option>
+                        <option value="Dragon Core">Dragon Core</option>
                     </select>
                     <input type="number" id="add-item-qty" value="1" style="flex:0.5;">
                     <button class="btn btn-save" onclick="addItemToInv()">Inject</button>
@@ -478,10 +474,7 @@
         document.getElementById('v-banned').value = String(activeUser.banned || false);
         document.getElementById('v-warns').value = activeUser.warns || 0;
 
-        // VIP
-        const vipInfo = document.getElementById('vip-info');
-        const isVipActive = activeUser.is_vip || (activeUser.vip_until && new Date(activeUser.vip_until) > new Date());
-        vipInfo.innerHTML = isVipActive ? `✅ Until: ${new Date(activeUser.vip_until).toLocaleDateString()}` : "❌ Inactive";
+        updateVipUI();
 
         // Resources Tab
         const resGrid = document.getElementById('dynamic-res-grid');
@@ -533,6 +526,53 @@
         document.getElementById('editForm').style.display = 'flex';
     }
 
+    function updateVipUI() {
+        const vipInfo = document.getElementById('vip-info');
+        const isVipActive = activeUser.is_vip === true || (activeUser.vip_until && new Date(activeUser.vip_until) > new Date());
+        vipInfo.innerHTML = isVipActive 
+            ? `<b style="color:var(--vip)">✅ VIP ACTIVE</b><br>Expires: ${new Date(activeUser.vip_until).toLocaleDateString()}` 
+            : "<b style="color:var(--text-dim)">❌ VIP INACTIVE</b>";
+    }
+
+    async function grantVip() {
+        try {
+            const res = await fetch('/api/set-vip', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: activeUser._id, days: 30 })
+            });
+            if(res.ok) {
+                showToast("VIP Extended +30 Days");
+                // Обновляем локальные данные, чтобы не перезагружать всё сразу
+                activeUser.is_vip = true;
+                const newDate = new Date();
+                newDate.setDate(newDate.getDate() + 30);
+                activeUser.vip_until = newDate;
+                updateVipUI();
+            }
+        } catch(e) { alert("Error granting VIP"); }
+    }
+
+    async function revokeVip() {
+        if(!confirm("Are you sure you want to revoke VIP status?")) return;
+        activeUser.is_vip = false;
+        activeUser.vip_until = null;
+        // Просто сохраняем через основной API
+        processSave();
+    }
+
+    async function toggleAdmin(val) {
+        const action = val === 'true' ? 'add' : 'remove';
+        try {
+            const res = await fetch('/api/set-admin', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: activeUser._id, action: action })
+            });
+            if(res.ok) showToast(`Admin status: ${val}`);
+        } catch(e) { console.error(e); }
+    }
+
     function renderInv() {
         const box = document.getElementById('inv-list');
         box.innerHTML = '';
@@ -542,7 +582,7 @@
                 <div class="item-tile ${items[key].rarity || 'common'}">
                     <span class="name">${key}</span>
                     <span class="val">x${items[key].amount}</span>
-                    <button onclick="remItem('${key}')" style="position:absolute; top:5px; right:5px; background:none; border:none; color:red; cursor:pointer;">×</button>
+                    <button onclick="remItem('${key}')" style="position:absolute; top:5px; right:5px; background:none; border:none; color:red; cursor:pointer; font-size: 18px;">×</button>
                 </div>
             `;
         }
@@ -623,7 +663,7 @@
 
     function updateStats() {
         document.getElementById('count-users').innerText = allUsers.length;
-        document.getElementById('count-vips').innerText = allUsers.filter(u => u.is_vip).length;
+        document.getElementById('count-vips').innerText = allUsers.filter(u => u.is_vip || (u.vip_until && new Date(u.vip_until) > new Date())).length;
     }
 
     loadUsers();
