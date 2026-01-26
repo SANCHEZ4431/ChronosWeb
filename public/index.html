@@ -2,339 +2,729 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Chronos Master Control v2.5</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chronos Master Control v2.8 Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0b0b14; --surface: #161625; --accent: #5da9ff; --text: #e0e0e0;
-            --legendary: #ffae00; --epic: #bf40bf; --rare: #0070dd; --common: #ffffff;
-            --danger: #ff4d4d; --success: #2ecc71; --vip: #f1c40f;
+            --bg: #0b0b14; 
+            --surface: #161625; 
+            --surface-light: #1f1f35;
+            --accent: #5da9ff; 
+            --accent-glow: rgba(93, 169, 255, 0.3);
+            --text: #e0e0e0;
+            --text-dim: #888;
+            --legendary: #ffae00; 
+            --epic: #bf40bf; 
+            --rare: #0070dd; 
+            --common: #ffffff;
+            --danger: #ff4d4d;
+            --success: #00e676;
+            --vip: #f1c40f;
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .container { max-width: 1300px; margin: 0 auto; }
-        table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; margin-top: 20px; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #2d2d44; }
-        th { background: #1f1f35; color: var(--accent); font-size: 11px; text-transform: uppercase; }
-        tr:hover { background: #1f1f35; cursor: pointer; }
 
-        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--surface-light); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 40px 20px; 
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(90deg, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Main Table */
+        .table-wrapper {
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #2d2d44;
+            overflow: hidden;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { 
+            background: var(--surface-light); 
+            color: var(--accent); 
+            font-size: 10px; 
+            text-transform: uppercase; 
+            padding: 15px;
+            text-align: left;
+            letter-spacing: 1px;
+        }
+        td { 
+            padding: 15px; 
+            border-bottom: 1px solid #2d2d44; 
+            font-size: 14px;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.02); cursor: pointer; }
+        
+        .user-id { font-family: 'Fira Code', monospace; color: var(--text-dim); font-size: 12px; }
+        .username { font-weight: 600; color: #fff; }
+        .badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
+            margin-left: 5px;
+            text-transform: uppercase;
+        }
+        .badge-vip { background: var(--vip); color: #000; }
+        .badge-admin { background: var(--danger); color: #fff; }
+
+        /* Modal & Form */
+        #overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); 
+            backdrop-filter: blur(5px);
+            z-index: 999; 
+        }
+
         #editForm {
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: var(--surface); width: 1100px; max-height: 95vh; border-radius: 20px;
-            z-index: 1000; overflow: hidden; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,1);
+            display: none; 
+            position: fixed; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%);
+            background: var(--surface); 
+            width: 1150px; 
+            height: 85vh;
+            border-radius: 24px;
+            z-index: 1000; 
+            overflow: hidden; 
+            flex-direction: column; 
+            box-shadow: 0 0 100px rgba(0,0,0,1);
+            border: 1px solid #3d3d5c;
         }
 
-        .tabs { display: flex; background: #1f1f35; padding: 10px 20px 0; gap: 5px; }
-        .tab-btn { padding: 12px 20px; border: none; background: none; color: #888; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; }
-        .tab-btn.active { background: var(--surface); color: var(--accent); }
+        .tabs { 
+            display: flex; 
+            background: var(--surface-light); 
+            padding: 15px 25px 0; 
+            gap: 10px;
+            border-bottom: 1px solid #2d2d44;
+        }
+        .tab-btn { 
+            padding: 12px 24px; 
+            border: none; 
+            background: transparent; 
+            color: var(--text-dim); 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 13px;
+            border-radius: 12px 12px 0 0; 
+            transition: all 0.3s;
+        }
+        .tab-btn:hover { color: #fff; }
+        .tab-btn.active { 
+            background: var(--surface); 
+            color: var(--accent); 
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
+        }
 
-        .content { padding: 25px; overflow-y: auto; flex-grow: 1; }
-        .tab-content { display: none; }
+        .content { padding: 30px; overflow-y: auto; flex-grow: 1; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
 
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .section { background: #1f1f35; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-        .section h4 { margin: 0 0 10px 0; color: var(--accent); font-size: 12px; text-transform: uppercase; border-bottom: 1px solid #2d2d44; padding-bottom: 5px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        label { display: block; font-size: 10px; color: #888; margin-top: 8px; text-transform: uppercase; }
-        input, select { width: 100%; padding: 8px; margin-top: 4px; background: #0b0b14; border: 1px solid #2d2d44; color: #fff; border-radius: 5px; box-sizing: border-box; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .section { 
+            background: rgba(255,255,255,0.03); 
+            padding: 20px; 
+            border-radius: 16px; 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .section h4 { 
+            margin: 0 0 15px 0; 
+            color: var(--accent); 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-        /* Специальные стили для новых функций */
-        .tag-editable { display: inline-flex; align-items: center; background: #2d2d44; padding: 4px 10px; border-radius: 4px; font-size: 11px; margin: 4px; border: 1px solid #3d3d5c; }
-        .tag-editable .remove { margin-left: 8px; color: var(--danger); cursor: pointer; font-weight: bold; }
-        
-        .cd-item { display: flex; justify-content: space-between; align-items: center; background: #0b0b14; padding: 8px; border-radius: 6px; margin-bottom: 5px; border: 1px solid #2d2d44; }
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        /* Inputs */
+        label { display: block; font-size: 10px; color: var(--text-dim); margin-top: 12px; text-transform: uppercase; font-weight: 600; }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 10px 12px; 
+            margin-top: 6px; 
+            background: var(--bg); 
+            border: 1px solid #2d2d44; 
+            color: #fff; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-family: inherit;
+            transition: border 0.3s;
+        }
+        input:focus { border-color: var(--accent); outline: none; }
+        input:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .footer { padding: 15px 25px; background: #1f1f35; display: flex; justify-content: flex-end; gap: 10px; }
-        .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-save { background: var(--accent); color: #000; }
-        .btn-danger { background: var(--danger); color: #fff; }
+        /* Inventory Items */
+        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+        .item-card { 
+            background: var(--bg); 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: 1px solid #2d2d44;
+            border-left-width: 5px; 
+            position: relative; 
+            transition: transform 0.2s;
+        }
+        .item-card:hover { transform: translateY(-3px); }
+        .item-card.legendary { border-left-color: var(--legendary); box-shadow: 0 0 15px rgba(255,174,0,0.1); }
+        .item-card.epic { border-left-color: var(--epic); }
+        .item-card.rare { border-left-color: var(--rare); }
+        .item-card .name { font-size: 12px; font-weight: 700; display: block; margin-bottom: 4px; }
+        .item-card .count { color: var(--accent); font-family: 'Fira Code', monospace; font-size: 14px; }
+        .del-btn { position: absolute; top: 8px; right: 10px; color: var(--danger); cursor: pointer; opacity: 0.5; transition: 0.2s; }
+        .del-btn:hover { opacity: 1; }
+
+        /* Chat Log */
+        .chat-log { 
+            background: #050508; 
+            padding: 15px; 
+            border-radius: 12px; 
+            font-size: 12px; 
+            height: 350px; 
+            overflow-y: auto; 
+            border: 1px solid #2d2d44; 
+            line-height: 1.5;
+        }
+        .msg { margin-bottom: 12px; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.02); }
+        .msg-u { color: var(--accent); font-weight: bold; }
+        .msg-a { color: #ff80ab; font-weight: bold; }
+
+        /* Footer Buttons */
+        .footer { padding: 20px 30px; background: var(--surface-light); display: flex; justify-content: flex-end; gap: 15px; }
+        .btn { 
+            padding: 12px 28px; 
+            border-radius: 10px; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: 700; 
+            font-size: 13px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-save { background: var(--accent); color: #000; box-shadow: 0 4px 15px var(--accent-glow); }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent-glow); }
+        .btn-close { background: #2d2d44; color: #fff; }
+        .btn-close:hover { background: #3d3d5c; }
         .btn-vip { background: var(--vip); color: #000; }
-        .btn-close { background: #3d3d5c; color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; }
+
+        .tag { display: inline-block; background: #2d2d44; padding: 4px 10px; border-radius: 6px; font-size: 11px; margin: 3px; border: 1px solid rgba(255,255,255,0.1); }
+        
+        #toast {
+            position: fixed; bottom: 30px; right: 30px; background: var(--surface);
+            padding: 15px 25px; border-radius: 12px; border-left: 4px solid var(--accent);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 2000;
+            transform: translateX(150%); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #toast.show { transform: translateX(0); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 style="color: var(--accent);">Chronos Master Control <small style="font-size: 12px; color: #666;">v2.5 Full Access</small></h1>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Username</th>
-                <th>Level</th>
-                <th>Coins</th>
-                <th>Status</th>
-                <th>Messages</th>
-            </tr>
-        </thead>
-        <tbody id="userList"></tbody>
-    </table>
+    <header>
+        <div class="logo">
+            <h1>Chronos Master Control <small style="font-size: 12px; color: var(--text-dim); vertical-align: middle; margin-left: 10px;">v2.8.1 Stable</small></h1>
+        </div>
+        <div class="actions">
+            <button class="btn btn-close" onclick="loadUsers()">🔄 Refresh Database</button>
+        </div>
+    </header>
+
+    <div class="table-wrapper">
+        <table id="userTable">
+            <thead>
+                <tr>
+                    <th>Telegram ID</th>
+                    <th>User / Alias</th>
+                    <th>Level</th>
+                    <th>Coins</th>
+                    <th>Essence</th>
+                    <th>AI Status</th>
+                    <th>Stats</th>
+                </tr>
+            </thead>
+            <tbody id="userList">
+                <tr><td colspan="7" style="text-align:center; padding: 50px;">Загрузка данных из облака...</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <div id="overlay" onclick="closeEdit()"></div>
 
 <div id="editForm">
     <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'main')">📊 PROFILE</button>
-        <button class="tab-btn" onclick="openTab(event, 'privileges')">🛡️ PRIVILEGES</button>
-        <button class="tab-btn" onclick="openTab(event, 'nova')">🤖 NOVA AI</button>
-        <button class="tab-btn" onclick="openTab(event, 'system')">⚙️ SYSTEM</button>
+        <button class="tab-btn active" onclick="openTab(event, 'main')">📊 Profile</button>
+        <button class="tab-btn" onclick="openTab(event, 'inventory')">🎒 Inventory</button>
+        <button class="tab-btn" onclick="openTab(event, 'privileges')">🛡️ Roles & VIP</button>
+        <button class="tab-btn" onclick="openTab(event, 'nova')">🤖 AI Nova</button>
+        <button class="tab-btn" onclick="openTab(event, 'skills')">⚡ Skills</button>
+        <button class="tab-btn" onclick="openTab(event, 'system')">⚙️ System</button>
     </div>
 
     <div class="content">
         <div id="main" class="tab-content active">
             <div class="grid">
                 <div class="section">
-                    <h4>Basic Data</h4>
+                    <h4>👤 Identity</h4>
                     <label>Telegram ID</label><input type="text" id="v-id" disabled>
-                    <label>Username</label><input type="text" id="v-user">
-                    <label>Coins</label><input type="number" id="v-coins">
-                    <label>Level</label><input type="number" id="v-lvl">
-                </div>
-                <div class="section">
-                    <h4>Edit Achievements</h4>
-                    <div id="achievementsContainer" style="min-height: 100px; border: 1px solid #2d2d44; padding: 10px; border-radius: 8px; margin-bottom: 10px;"></div>
-                    <div style="display:flex; gap:5px;">
-                        <input type="text" id="new-ach-input" placeholder="Achievement name..." style="font-size: 12px;">
-                        <button class="btn btn-save" onclick="addAchievement()" style="padding: 5px 12px;">+</button>
+                    <label>Username</label><input type="text" id="v-user" placeholder="None">
+                    <label>Exp Level</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="v-lvl" title="Level">
+                        <input type="number" id="v-xp" title="XP">
                     </div>
                 </div>
                 <div class="section">
-                    <h4>Resource Warehouse</h4>
-                    <div id="resGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;"></div>
+                    <h4>💰 Economics</h4>
+                    <label>Gold Coins</label><input type="number" id="v-coins">
+                    <label>Dark Essence</label><input type="number" id="v-essence">
+                    <label>Clan Membership</label><input type="text" id="v-clan" placeholder="No Clan">
+                </div>
+                <div class="section">
+                    <h4>📈 Activity</h4>
+                    <label>Messages Sent</label><input type="number" id="v-msgs">
+                    <label>Commands Executed</label><input type="number" id="v-cmds">
+                    <label>Warns Level</label><input type="number" id="v-warns">
                 </div>
             </div>
+            
+            <div class="grid" style="margin-top: 20px;">
+                <div class="section" style="grid-column: span 2;">
+                    <h4>📦 Resource Storage</h4>
+                    <div id="resGrid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;"></div>
+                </div>
+                <div class="section">
+                    <h4>🏅 Achievements</h4>
+                    <div id="achievementsBox" style="max-height: 150px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="inventory" class="tab-content">
+            <div class="section" style="margin-bottom:20px; border: 1px solid var(--accent); background: rgba(93, 169, 255, 0.05);">
+                <h4>✨ Item Generator</h4>
+                <div style="display:flex; gap:15px;">
+                    <select id="add-item-name" style="flex:2;"></select>
+                    <input type="number" id="add-item-amount" value="1" style="flex:0.5;">
+                    <button class="btn btn-save" onclick="handleAddItem()">Inject Item</button>
+                </div>
+            </div>
+            <div id="inventoryList" class="inv-grid"></div>
         </div>
 
         <div id="privileges" class="tab-content">
             <div class="grid">
                 <div class="section">
-                    <h4>VIP Management</h4>
-                    <div id="vipInfoBox" style="padding: 10px; background: #0b0b14; border-radius: 8px; margin-bottom: 15px;">
-                        Статус: <span id="vipStatusText">Загрузка...</span>
+                    <h4>⭐ VIP Status</h4>
+                    <div id="vipStatus" style="padding: 15px; border-radius: 8px; background: var(--bg); margin-bottom: 15px; text-align: center;">
+                        Checking...
                     </div>
-                    <label>Add VIP Days</label>
-                    <input type="number" id="vip-days" value="30">
-                    <button class="btn btn-vip" onclick="handleSetVip()" style="width: 100%; margin-top: 10px;">Set/Update VIP</button>
+                    <label>Extend VIP (Days)</label>
+                    <input type="number" id="vip-days-add" value="30">
+                    <button class="btn btn-vip" onclick="updateVip(true)" style="width: 100%; margin-top: 15px; justify-content: center;">Apply VIP Subscription</button>
+                    <button class="btn btn-close" onclick="updateVip(false)" style="width: 100%; margin-top: 8px; justify-content: center;">Remove VIP</button>
                 </div>
                 <div class="section">
-                    <h4>Admin Access</h4>
-                    <div id="adminInfoBox" style="padding: 10px; background: #0b0b14; border-radius: 8px; margin-bottom: 15px;">
-                        Права: <span id="adminStatusText">Загрузка...</span>
+                    <h4>🛡️ Administration</h4>
+                    <div id="adminStatus" style="padding: 15px; border-radius: 8px; background: var(--bg); margin-bottom: 15px; text-align: center;">
+                        Checking...
                     </div>
-                    <button id="adminToggleBtn" class="btn btn-danger" onclick="handleToggleAdmin()" style="width: 100%;">Toggle Admin Status</button>
+                    <p style="font-size: 11px; color: var(--text-dim);">Administrative rights allow the user to use debug commands and bypass cooldowns.</p>
+                    <button id="toggleAdminBtn" class="btn btn-danger" onclick="toggleAdmin()" style="width: 100%; margin-top: 15px; justify-content: center;">Toggle Admin Rights</button>
+                </div>
+                <div class="section">
+                    <h4>🚫 Restrictions</h4>
+                    <label>Ban Status</label>
+                    <select id="v-banned">
+                        <option value="false">Active (Clear)</option>
+                        <option value="true">Banned (Restricted)</option>
+                    </select>
+                    <label>Reason</label>
+                    <input type="text" id="v-ban-reason" placeholder="Violation of rules">
                 </div>
             </div>
         </div>
 
         <div id="nova" class="tab-content">
-            <div class="section">
-                <h4>AI Configuration</h4>
-                <div class="grid">
-                    <div><label>Name</label><input type="text" id="ai-name"></div>
-                    <div><label>Rel. Level</label><input type="number" id="ai-rel"></div>
-                    <div><label>Mood</label><input type="text" id="ai-mood"></div>
+            <div class="grid">
+                <div class="section">
+                    <h4>🧠 Personality Core</h4>
+                    <label>AI Display Name</label><input type="text" id="ai-name">
+                    <label>Relationship Bond</label><input type="number" step="0.1" id="ai-rel">
+                    <label>Physical Age</label><input type="number" id="ai-age">
+                    <label>Mood State</label><input type="text" id="ai-mood">
+                    <label>Linguistic Style</label><input type="text" id="ai-speech">
+                </div>
+                <div class="section" style="grid-column: span 2;">
+                    <h4>🎞️ Memory Stream</h4>
+                    <div id="aiChat" class="chat-log"></div>
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <div id="aiQuest" style="font-size:11px; color:var(--accent);"></div>
+                        <button class="btn btn-close" style="padding: 5px 10px; font-size: 10px;" onclick="clearAiHistory()">Wipe Memory</button>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <div id="skills" class="tab-content">
+            <div id="skillsGrid" class="grid"></div>
+        </div>
+
         <div id="system" class="tab-content">
-            <div class="section">
-                <h4>Active Cooldowns</h4>
-                <div id="cooldownsList"></div>
-                <p style="font-size: 10px; color: #666; margin-top: 10px;">* Нажмите "Reset", чтобы установить время кулдауна на текущее (мгновенный откат).</p>
+            <div class="grid">
+                <div class="section">
+                    <h4>⏳ Active Cooldowns</h4>
+                    <div id="cdBox" style="font-size:11px; display: grid; gap: 8px;"></div>
+                </div>
+                <div class="section">
+                    <h4>🐾 Companion Data</h4>
+                    <div id="petsBox"></div>
+                    <label>Add Pet ID</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" id="new-pet-id">
+                        <button class="btn btn-save" style="padding: 5px 15px;" onclick="addPet()">+</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="footer">
         <button class="btn btn-close" onclick="closeEdit()">Cancel</button>
-        <button class="btn btn-save" onclick="saveData()">💾 SAVE CHANGES</button>
+        <button class="btn btn-save" onclick="saveData()">💾 Commit Changes to DB</button>
     </div>
 </div>
 
-<script>
-    const RESOURCES = ["gold", "wood", "stone", "iron", "magic_crystals", "ores", "food"];
-    let currentUser = null;
-    let globalStatus = { isAdmin: false, isVip: false };
+<div id="toast">Changes saved successfully!</div>
 
-    async function loadUsers() {
-        const res = await fetch('/api/users');
-        const users = await res.json();
-        document.getElementById('userList').innerHTML = users.map(u => `
-            <tr onclick='openEdit(${JSON.stringify(u)})'>
-                <td><code>${u._id}</code></td>
-                <td>@${u.username || '---'}</td>
-                <td>${u.level || 0}</td>
-                <td>${u.coins || 0}</td>
-                <td>${u.is_vip ? '⭐ VIP' : 'User'}</td>
-                <td>${u.messages || 0}</td>
-            </tr>
-        `).join('');
+<script>
+    // --- КОНСТАНТЫ ---
+    const RESOURCES = ["gold", "wood", "stone", "iron", "magic_crystals", "ores", "fabric", "food", "rare_artifacts"];
+    const SKILLS = ["exp_boost", "resource_gain", "luck", "gold_gain", "wisdom", "pet_bonus", "cooldown_reduction"];
+    const ITEMS_DB = [
+        {name: "Talisman of Knowledge", rarity: "common"},
+        {name: "Energy Drink", rarity: "rare"},
+        {name: "Golden Purse", rarity: "epic"},
+        {name: "Philosopher's Stone", rarity: "legendary"},
+        {name: "Timekeeper’s Hourglass", rarity: "legendary"},
+        {name: "Crown of Mastery", rarity: "legendary"}
+    ];
+
+    let allUsers = []; 
+    let currentUser = null;
+
+    // --- ИНИЦИАЛИЗАЦИЯ ---
+    function init() {
+        const itemSelect = document.getElementById('add-item-name');
+        ITEMS_DB.forEach(i => {
+            let opt = document.createElement('option');
+            opt.value = i.name;
+            opt.innerText = `${i.name} [${i.rarity.toUpperCase()}]`;
+            itemSelect.appendChild(opt);
+        });
+        loadUsers();
     }
 
-    async function openEdit(u) {
-        currentUser = JSON.parse(JSON.stringify(u)); // Глубокая копия
-        
-        // Заполнение полей
-        document.getElementById('v-id').value = u._id;
-        document.getElementById('v-user').value = u.username || '';
-        document.getElementById('v-coins').value = u.coins || 0;
-        document.getElementById('v-lvl').value = u.level || 0;
+    // --- API: ЗАГРУЗКА ---
+    async function loadUsers() {
+        try {
+            const res = await fetch('/api/users');
+            if (!res.ok) throw new Error("Connection failed (401/500)");
+            
+            allUsers = await res.json();
+            const list = document.getElementById('userList');
+            
+            if (allUsers.length === 0) {
+                list.innerHTML = '<tr><td colspan="7" style="text-align:center;">Base is empty</td></tr>';
+                return;
+            }
 
-        // Ресурсы
-        const resGrid = document.getElementById('resGrid');
-        resGrid.innerHTML = RESOURCES.map(r => `
-            <div>
-                <label>${r}</label>
-                <input type="number" value="${u.resources?.[r] || 0}" data-res="${r}">
+            list.innerHTML = allUsers.map((u, idx) => `
+                <tr onclick="openEdit(${idx})">
+                    <td class="user-id">#${u._id}</td>
+                    <td>
+                        <span class="username">@${u.username || 'unknown'}</span>
+                        ${u.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
+                        ${u.is_vip ? '<span class="badge badge-vip">VIP</span>' : ''}
+                    </td>
+                    <td>Lvl ${u.level || 0}</td>
+                    <td>${(u.coins || 0).toLocaleString()}</td>
+                    <td>${u.essence || 0}</td>
+                    <td>${u.ai_profile?.name || '---'}</td>
+                    <td><span class="tag">💬 ${u.messages || 0}</span></td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            document.getElementById('userList').innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">${e.message}</td></tr>`;
+        }
+    }
+
+    // --- МОДАЛЬНОЕ ОКНО ---
+    function openEdit(index) {
+        currentUser = JSON.parse(JSON.stringify(allUsers[index])); // Клонируем данные
+        
+        // Базовые поля
+        document.getElementById('v-id').value = currentUser._id;
+        document.getElementById('v-user').value = currentUser.username || '';
+        document.getElementById('v-lvl').value = currentUser.level || 1;
+        document.getElementById('v-xp').value = currentUser.xp || currentUser.exp || 0;
+        document.getElementById('v-coins').value = currentUser.coins || 0;
+        document.getElementById('v-essence').value = currentUser.essence || 0;
+        document.getElementById('v-msgs').value = currentUser.messages || 0;
+        document.getElementById('v-cmds').value = currentUser.commands_count || 0;
+        document.getElementById('v-warns').value = currentUser.warns || 0;
+        document.getElementById('v-clan').value = currentUser.clan_id || '';
+
+        // Динамические сетки (Ресурсы и Скиллы)
+        renderResourceGrid();
+        renderSkillGrid();
+
+        // ИИ
+        const ai = currentUser.ai_profile || {};
+        document.getElementById('ai-name').value = ai.name || '';
+        document.getElementById('ai-rel').value = ai.relationship_level || 0;
+        document.getElementById('ai-age').value = ai.age || 0;
+        document.getElementById('ai-mood').value = ai.mood || '';
+        document.getElementById('ai-speech').value = ai.speech_style || '';
+        document.getElementById('aiQuest').innerText = ai.quest?.meta?.text ? `Active Quest: ${ai.quest.meta.text}` : 'No active quest';
+        
+        document.getElementById('aiChat').innerHTML = (currentUser.ai_history || []).map(m => `
+            <div class="msg"><b class="msg-${m.role === 'user' ? 'u':'a'}">${m.role.toUpperCase()}:</b> ${m.content}</div>
+        `).join('');
+
+        // ВИП и Админ
+        updateStatusLabels();
+
+        // Остальное
+        renderInventory();
+        document.getElementById('achievementsBox').innerHTML = (currentUser.achievements || []).map(a => `<span class="tag">${a}</span>`).join('');
+        document.getElementById('petsBox').innerHTML = (currentUser.pets || []).map(p => `
+            <div class="tag" style="display:flex; justify-content:space-between; align-items:center;">
+                🐾 ${p} <span style="margin-left:8px; cursor:pointer; color:red;" onclick="removePet('${p}')">×</span>
             </div>
         `).join('');
 
-        // ИИ
-        document.getElementById('ai-name').value = u.ai_profile?.name || '';
-        document.getElementById('ai-rel').value = u.ai_profile?.relationship_level || 0;
-        document.getElementById('ai-mood').value = u.ai_profile?.mood || '';
-
-        // Ачивки и кулдауны
-        renderAchievements();
-        renderCooldowns();
-        
-        // Получаем статус из внешних коллекций
-        fetchGlobalStatus(u._id);
+        // Кулдауны
+        document.getElementById('cdBox').innerHTML = Object.entries(currentUser.cooldowns || {}).map(([k, v]) => {
+            const date = new Date(v?.$date || v);
+            const isExpired = date < new Date();
+            return `
+                <div style="display:flex; justify-content:space-between; color:${isExpired ? '#888' : 'var(--accent)'}">
+                    <span>${k}:</span>
+                    <span>${isNaN(date) ? 'Ready' : date.toLocaleString()}</span>
+                </div>`;
+        }).join('');
 
         document.getElementById('overlay').style.display = 'block';
         document.getElementById('editForm').style.display = 'flex';
     }
 
-    // --- ЛОГИКА АЧИВОК ---
-    function renderAchievements() {
-        const box = document.getElementById('achievementsContainer');
-        const achs = currentUser.achievements || [];
-        box.innerHTML = achs.map((a, i) => `
-            <div class="tag-editable">
-                ${a} <span class="remove" onclick="removeAchievement(${i})">×</span>
+    // --- ВСПОМОГАТЕЛЬНЫЕ РЕНДЕРЫ ---
+    function renderResourceGrid() {
+        const grid = document.getElementById('resGrid');
+        grid.innerHTML = RESOURCES.map(r => `
+            <div>
+                <label>${r.replace(/_/g,' ')}</label>
+                <input type="number" value="${currentUser.resources?.[r] || 0}" data-res="${r}">
             </div>
         `).join('');
     }
 
-    function addAchievement() {
-        const input = document.getElementById('new-ach-input');
-        if (!input.value) return;
-        if (!currentUser.achievements) currentUser.achievements = [];
-        currentUser.achievements.push(input.value);
-        input.value = '';
-        renderAchievements();
+    function renderSkillGrid() {
+        const grid = document.getElementById('skillsGrid');
+        grid.innerHTML = SKILLS.map(s => `
+            <div class="section">
+                <label>${s.replace(/_/g,' ')}</label>
+                <input type="number" value="${currentUser.skills?.[s] || 0}" data-skill="${s}">
+            </div>
+        `).join('');
     }
 
-    function removeAchievement(index) {
-        currentUser.achievements.splice(index, 1);
-        renderAchievements();
+    function renderInventory() {
+        const list = document.getElementById('inventoryList');
+        list.innerHTML = '';
+        const inv = currentUser.inventory || {};
+        for (const [name, data] of Object.entries(inv)) {
+            list.innerHTML += `
+                <div class="item-card ${data.rarity || 'common'}">
+                    <span class="del-btn" onclick="handleRemoveItem('${name}')">✖</span>
+                    <span class="name">${name}</span>
+                    <span class="count">x${data.amount || 0}</span>
+                </div>`;
+        }
     }
 
-    // --- ЛОГИКА КУЛДАУНОВ ---
-    function renderCooldowns() {
-        const box = document.getElementById('cooldownsList');
-        const cds = currentUser.cooldowns || {};
-        if (Object.keys(cds).length === 0) { box.innerHTML = "No active cooldowns"; return; }
+    function updateStatusLabels() {
+        const vipEl = document.getElementById('vipStatus');
+        const adminEl = document.getElementById('adminStatus');
+        const adminBtn = document.getElementById('toggleAdminBtn');
+
+        if (currentUser.is_vip) {
+            const exp = new Date(currentUser.vip_until);
+            vipEl.innerHTML = `⭐ <b style="color:var(--vip)">VIP ACTIVE</b><br><small>Expires: ${exp.toLocaleDateString()}</small>`;
+        } else {
+            vipEl.innerHTML = "REGULAR USER";
+        }
+
+        if (currentUser.is_admin) {
+            adminEl.innerHTML = `🛡️ <b style="color:var(--danger)">ADMIN ACCESS</b>`;
+            adminBtn.innerText = "Revoke Admin Access";
+        } else {
+            adminEl.innerHTML = "NO ACCESS";
+            adminBtn.innerText = "Grant Admin Access";
+        }
+    }
+
+    // --- ЛОГИКА ДЕЙСТВИЙ ---
+    function handleAddItem() {
+        const name = document.getElementById('add-item-name').value;
+        const amount = parseInt(document.getElementById('add-item-amount').value);
+        const meta = ITEMS_DB.find(i => i.name === name);
         
-        box.innerHTML = Object.entries(cds).map(([key, val]) => {
-            const date = new Date(val?.$date || val);
-            const isActive = date > new Date();
-            return `
-                <div class="cd-item">
-                    <div>
-                        <b style="color:var(--accent)">${key}</b><br>
-                        <small style="color:#666">${date.toLocaleString()}</small>
-                    </div>
-                    <button class="btn btn-close" style="padding:4px 8px; font-size:10px;" onclick="resetCooldown('${key}')">RESET</button>
-                </div>
-            `;
-        }).join('');
+        if (!currentUser.inventory) currentUser.inventory = {};
+        if (currentUser.inventory[name]) currentUser.inventory[name].amount += amount;
+        else currentUser.inventory[name] = { amount, rarity: meta.rarity };
+        renderInventory();
     }
 
-    function resetCooldown(key) {
-        currentUser.cooldowns[key] = new Date().toISOString();
-        renderCooldowns();
-    }
-
-    // --- VIP И ADMIN СТАТУС ---
-    async function fetchGlobalStatus(id) {
-        const res = await fetch(`/api/user-status/${id}`);
-        const data = await res.json();
-        globalStatus = data;
-
-        const vipText = document.getElementById('vipStatusText');
-        if (data.isVip) {
-            vipText.innerHTML = `<b style="color:var(--vip)">ACTIVE</b> (until ${new Date(data.vipExpires).toLocaleDateString()})`;
-        } else {
-            vipText.innerHTML = `<span style="color:#666">No VIP</span>`;
-        }
-
-        const adminText = document.getElementById('adminStatusText');
-        const adminBtn = document.getElementById('adminToggleBtn');
-        if (data.isAdmin) {
-            adminText.innerHTML = `<b style="color:var(--danger)">ADMINISTRATOR</b>`;
-            adminBtn.innerText = "Remove Admin Rights";
-        } else {
-            adminText.innerHTML = `<span style="color:#666">Regular User</span>`;
-            adminBtn.innerText = "Grant Admin Rights";
+    function handleRemoveItem(name) {
+        if(confirm(`Remove ${name}?`)) {
+            delete currentUser.inventory[name];
+            renderInventory();
         }
     }
 
-    async function handleSetVip() {
-        const days = document.getElementById('vip-days').value;
-        const res = await fetch('/api/set-vip', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ user_id: currentUser._id, days })
-        });
-        if (res.ok) { alert("VIP Updated!"); fetchGlobalStatus(currentUser._id); }
+    function updateVip(active) {
+        if (!active) {
+            currentUser.is_vip = false;
+            currentUser.vip_until = null;
+        } else {
+            const days = parseInt(document.getElementById('vip-days-add').value);
+            const date = new Date();
+            date.setDate(date.getDate() + days);
+            currentUser.is_vip = true;
+            currentUser.vip_until = date.toISOString();
+        }
+        updateStatusLabels();
     }
 
-    async function handleToggleAdmin() {
-        const action = globalStatus.isAdmin ? 'remove' : 'add';
-        const res = await fetch('/api/set-admin', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ user_id: currentUser._id, action })
-        });
-        if (res.ok) fetchGlobalStatus(currentUser._id);
+    function toggleAdmin() {
+        currentUser.is_admin = !currentUser.is_admin;
+        updateStatusLabels();
+    }
+
+    function addPet() {
+        const id = document.getElementById('new-pet-id').value;
+        if (!id) return;
+        if (!currentUser.pets) currentUser.pets = [];
+        currentUser.pets.push(id);
+        openEdit(allUsers.findIndex(u => u._id === currentUser._id)); // Re-render
     }
 
     // --- СОХРАНЕНИЕ ---
     async function saveData() {
-        const update = {
+        const updateData = {
             username: document.getElementById('v-user').value,
-            coins: Number(document.getElementById('v-coins').value),
             level: Number(document.getElementById('v-lvl').value),
-            achievements: currentUser.achievements,
-            cooldowns: currentUser.cooldowns,
+            xp: Number(document.getElementById('v-xp').value),
+            coins: Number(document.getElementById('v-coins').value),
+            essence: Number(document.getElementById('v-essence').value),
+            messages: Number(document.getElementById('v-msgs').value),
+            commands_count: Number(document.getElementById('v-cmds').value),
+            warns: Number(document.getElementById('v-warns').value),
+            clan_id: document.getElementById('v-clan').value,
+            inventory: currentUser.inventory,
+            is_vip: currentUser.is_vip,
+            vip_until: currentUser.vip_until,
+            is_admin: currentUser.is_admin,
+            pets: currentUser.pets,
+            // Вложенные поля ИИ
             "ai_profile.name": document.getElementById('ai-name').value,
             "ai_profile.relationship_level": Number(document.getElementById('ai-rel').value),
+            "ai_profile.age": Number(document.getElementById('ai-age').value),
             "ai_profile.mood": document.getElementById('ai-mood').value,
+            "ai_profile.speech_style": document.getElementById('ai-speech').value,
         };
 
-        document.querySelectorAll('[data-res]').forEach(i => {
-            update[`resources.${i.dataset.res}`] = Number(i.value);
-        });
+        // Собираем ресурсы и скиллы
+        document.querySelectorAll('[data-res]').forEach(i => updateData[`resources.${i.dataset.res}`] = Number(i.value));
+        document.querySelectorAll('[data-skill]').forEach(i => updateData[`skills.${i.dataset.skill}`] = Number(i.value));
 
-        const res = await fetch('/api/update', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ user_id: currentUser._id, updateData: update })
-        });
+        try {
+            const res = await fetch('/api/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: currentUser._id, updateData })
+            });
 
-        if (res.ok) { closeEdit(); loadUsers(); }
+            if (res.ok) {
+                showToast("Database updated successfully!");
+                closeEdit();
+                loadUsers();
+            } else {
+                const err = await res.json();
+                alert("Update failed: " + err.error);
+            }
+        } catch (e) {
+            alert("Network error: " + e.message);
+        }
     }
 
-    function openTab(e, n) {
+    function showToast(text) {
+        const t = document.getElementById('toast');
+        t.innerText = text;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function openTab(evt, name) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(n).classList.add('active');
-        e.currentTarget.classList.add('active');
+        document.getElementById(name).classList.add('active');
+        evt.currentTarget.classList.add('active');
     }
 
     function closeEdit() {
@@ -342,7 +732,8 @@
         document.getElementById('editForm').style.display = 'none';
     }
 
-    loadUsers();
+    // Запуск
+    init();
 </script>
 </body>
 </html>
