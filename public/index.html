@@ -332,10 +332,16 @@
                         <option value="false">Standard User</option>
                         <option value="true">System Administrator</option>
                     </select>
-                    <label>VIP Subscription</label>
+                
+                    <label>VIP Subscription Control</label>
                     <div id="vip-info" style="font-size: 11px; margin-bottom: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;"></div>
-                    <button class="btn btn-save" style="width:100%; margin-bottom:10px;" onclick="grantVip()">Extend VIP +30 Days</button>
-                    <button class="btn btn-close" style="width:100%; color: var(--danger);" onclick="revokeVip()">Revoke VIP</button>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="number" id="vip-days-input" value="30" style="flex: 1;" placeholder="Days">
+                        <button class="btn btn-save" style="flex: 2; padding: 10px;" onclick="grantVipCustom()">Grant VIP</button>
+                    </div>
+                    
+                    <button class="btn btn-close" style="width:100%; color: var(--danger); border: 1px solid rgba(255,51,102,0.3);" onclick="revokeVip()">Revoke VIP Status</button>
                 </div>
             </div>
         </div>
@@ -541,25 +547,33 @@
         }
     }
 
-    async function grantVip() {
+    async function grantVipCustom() {
+        const days = document.getElementById('vip-days-input').value;
+        if (!days || days <= 0) return alert("Please enter valid number of days");
+    
         try {
             const res = await fetch('/api/set-vip', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ user_id: activeUser._id, days: 30 })
+                body: JSON.stringify({ 
+                    user_id: activeUser._id, 
+                    days: parseInt(days) 
+                })
             });
+    
             if(res.ok) {
-                showToast("VIP Extended +30 Days");
-                // Обновляем локальные данные, чтобы не перезагружать всё сразу
-                activeUser.is_vip = true;
+                showToast(`VIP granted for ${days} days`);
+                // Локально обновляем дату для UI, чтобы не ждать перезагрузки
                 const newDate = new Date();
-                newDate.setDate(newDate.getDate() + 30);
+                newDate.setDate(newDate.getDate() + parseInt(days));
+                activeUser.is_vip = true;
                 activeUser.vip_until = newDate;
                 updateVipUI();
             }
-        } catch(e) { alert("Error granting VIP"); }
+        } catch(e) {
+            alert("Error updating VIP status");
+        }
     }
-
     async function revokeVip() {
         if(!confirm("Are you sure you want to revoke VIP status?")) return;
         activeUser.is_vip = false;
