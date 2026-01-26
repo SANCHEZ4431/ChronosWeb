@@ -52,53 +52,41 @@ app.post('/api/login', (req, res) => {
   }
 });
 
-// Защищенные роуты
 app.get('/api/users', checkAuth, async (req, res) => {
   try {
-    // 1. Берем всех пользователей из базы
-    const users = await User.find({}).sort({ level: -1 });
+    // Используем .lean(), чтобы получить чистые JS-объекты без фильтрации по схеме
+    const users = await User.find({}).sort({ level: -1 }).lean();
 
-    // 2. Отправляем ПОЛНЫЕ объекты, а не только обрезанную часть
     res.json(users.map(u => {
-      // Превращаем документ Mongoose в обычный объект, чтобы с ним было легче работать
-      const userObj = u.toObject();
-
       return {
-        // Системное
-        _id: userObj._id,
-        user_id: userObj._id, // для совместимости
-        username: userObj.username || 'n/a',
-        chat_id: userObj.chat_id,
+        // Системное (превращаем в строку для фронтенда)
+        _id: u._id ? u._id.toString() : null,
+        username: u.username || 'n/a',
         
         // Основные статы
-        level: userObj.level || 1,
-        exp: userObj.exp || 0,
-        xp: userObj.xp || 0,
-        messages: userObj.messages || 0,
-        coins: userObj.coins || 0,
-        essence: userObj.essence || 0,
-        warns: userObj.warns || 0,
-        commands_count: userObj.commands_count || 0,
-        clan_id: userObj.clan_id,
+        level: u.level || 1,
+        exp: u.exp || 0,
+        xp: u.xp || 0, // в твоей базе есть и exp и xp
+        messages: u.messages || 0,
+        coins: u.coins || 0,
+        essence: u.essence || 0,
+        warns: u.warns || 0,
+        commands_count: u.commands_count || 0,
+        clan_id: u.clan_id || '',
 
-        // СЛОЖНЫЕ СТРУКТУРЫ (передаем целиком)
-        inventory: userObj.inventory || {},
-        resources: userObj.resources || {},
-        skills: userObj.skills || {},
-        cooldowns: userObj.cooldowns || {},
-        achievements: userObj.achievements || [],
-        pets: userObj.pets || [],
-        referrals: userObj.referrals || [],
+        // СЛОЖНЫЕ СТРУКТУРЫ (теперь они не вырежутся благодаря .lean())
+        inventory: u.inventory || {},
+        resources: u.resources || {},
+        skills: u.skills || {},
+        cooldowns: u.cooldowns || {},
+        achievements: u.achievements || [],
+        pets: u.pets || [],
 
-        // ИИ ПРОФИЛЬ (всё: от квестов до истории)
-        ai_profile: userObj.ai_profile || {},
-        ai_history: userObj.ai_history || [],
-        ai_access: userObj.ai_access,
-        ai_enabled: userObj.ai_enabled,
-
-        // Тайминги
-        last_daily: userObj.last_daily,
-        cooldown_buffer_until: userObj.cooldown_buffer_until
+        // ИИ ПРОФИЛЬ
+        ai_profile: u.ai_profile || {},
+        ai_history: u.ai_history || [],
+        ai_access: u.ai_access || false,
+        ai_enabled: u.ai_enabled || false
       };
     }));
   } catch (err) {
