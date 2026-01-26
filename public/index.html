@@ -778,11 +778,24 @@
         const box = document.getElementById('inv-list');
         box.innerHTML = '';
         const items = activeUser.inventory || {};
-        for(let key in items) {
+        
+        for (let key in items) {
+            let amount, rarity;
+    
+            // Проверяем: если значение — объект, берем данные из него
+            if (typeof items[key] === 'object' && items[key] !== null) {
+                amount = items[key].amount || 0;
+                rarity = items[key].rarity || 'common';
+            } else {
+                // Если это просто число (как в случае с shadow_note)
+                amount = items[key];
+                rarity = 'common'; // Назначаем редкость по умолчанию
+            }
+    
             box.innerHTML += `
-                <div class="item-tile ${items[key].rarity || 'common'}">
+                <div class="item-tile ${rarity}">
                     <span class="name">${key}</span>
-                    <span class="val">x${items[key].amount}</span>
+                    <span class="val">x${amount}</span>
                     <button onclick="remItem('${key}')" style="position:absolute; top:5px; right:5px; background:none; border:none; color:red; cursor:pointer; font-size: 18px;">×</button>
                 </div>
             `;
