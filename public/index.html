@@ -277,6 +277,18 @@
         </div>
     </header>
 
+    <div class="search-bar" style="margin-bottom: 20px; display: flex; gap: 15px;">
+        <div style="position: relative; flex: 1;">
+            <input type="text" id="userSearch" placeholder="Search by ID or Username (e.g. @sanchez or 505952...)" 
+                   style="padding-left: 45px; height: 50px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1);"
+                   oninput="filterUsers()">
+            <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 18px;">🔍</span>
+        </div>
+        <div class="stat-pill" style="display: flex; align-items: center; justify-content: center; min-width: 150px;">
+            Found: <span id="count-found" style="margin-left: 8px;">0</span>
+        </div>
+    </div>
+
     <div class="table-card">
         <table id="userTable">
             <thead>
@@ -431,6 +443,7 @@
         try {
             const r = await fetch('/api/users');
             allUsers = await r.json();
+            document.getElementById('userSearch').value = ''; // Сброс поля поиска
             renderTable();
             updateStats();
             console.log("Data refreshed from DB");
@@ -439,16 +452,45 @@
         }
     }
 
-    function renderTable() {
+    function filterUsers() {
+        const query = document.getElementById('userSearch').value.toLowerCase().trim();
+        
+        // Если поиск пустой, отображаем всех
+        if (!query) {
+            renderTable(allUsers);
+            return;
+        }
+    
+        const filtered = allUsers.filter(u => {
+            const idMatch = String(u._id).includes(query);
+            const nameMatch = (u.username || "").toLowerCase().includes(query.replace('@', ''));
+            return idMatch || nameMatch;
+        });
+    
+        renderTable(filtered);
+        document.getElementById('count-found').innerText = filtered.length;
+    }
+    
+    // Обновленная функция рендеринга (заменить старую)
+    // Теперь она может принимать массив пользователей (для поиска)
+    function renderTable(dataToRender = allUsers) {
         const body = document.getElementById('userList');
-        body.innerHTML = allUsers.map((u, i) => {
-            // Теперь мы просто верим серверу, он уже все проверил
+        
+        if (dataToRender.length === 0) {
+            body.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 60px; color: var(--text-dim);">No users found matching your request.</td></tr>`;
+            return;
+        }
+    
+        body.innerHTML = dataToRender.map((u) => {
+            // Находим оригинальный индекс в allUsers для функции editUser
+            const originalIndex = allUsers.findIndex(original => original._id === u._id);
+            
             const isAdmin = u.is_admin === true;
             const isVip = u.is_vip === true; 
             const isBanned = u.banned === true;
             
             return `
-            <tr onclick="editUser(${i})">
+            <tr onclick="editUser(${originalIndex})">
                 <td class="user-id">#${u._id}</td>
                 <td>
                     <div class="user-cell">
@@ -468,6 +510,9 @@
                 </td>
             </tr>`;
         }).join('');
+    
+        // Обновляем счетчик найденных
+        document.getElementById('count-found').innerText = dataToRender.length;
     }
 
     function editUser(index) {
