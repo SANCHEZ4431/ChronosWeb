@@ -531,7 +531,7 @@
         const isVipActive = activeUser.is_vip === true || (activeUser.vip_until && new Date(activeUser.vip_until) > new Date());
         vipInfo.innerHTML = isVipActive 
             ? `<b style="color:var(--vip)">✅ VIP ACTIVE</b><br>Expires: ${new Date(activeUser.vip_until).toLocaleDateString()}` 
-            : "<b style="color:var(--text-dim)">❌ VIP INACTIVE</b>";
+            : `<b style="color:var(--text-dim)">❌ VIP INACTIVE</b>`;
     }
 
     async function grantVip() {
