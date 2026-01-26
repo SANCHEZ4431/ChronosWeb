@@ -267,14 +267,17 @@
 
 <div class="container">
     <header>
-        <div class="logo">
-            <h1>Chronos Master Control</h1>
-        </div>
-        <div class="stats-overview">
-            <div class="stat-pill">Users: <span id="count-users">0</span></div>
-            <div class="stat-pill">Online VIP: <span id="count-vips">0</span></div>
-            <button class="btn btn-save" style="padding: 8px 15px; font-size: 12px;" onclick="loadUsers()">🔄 Reload</button>
-        </div>
+        <header>
+            <div class="logo">
+                <h1>Chronos Master Control</h1>
+            </div>
+            <div class="stats-overview">
+                <div class="stat-pill">Users: <span id="count-users">0</span></div>
+                <div class="stat-pill">VIP: <span id="count-vips">0</span></div>
+                <button class="btn btn-save" style="padding: 8px 15px; font-size: 12px;" onclick="loadUsers()">🔄 Reload</button>
+                <button class="btn btn-close" style="padding: 8px 15px; font-size: 12px; background: rgba(255,51,102,0.1); border: 1px solid var(--danger); color: var(--danger);" onclick="logout()">🚪 Logout</button>
+            </div>
+        </header>
     </header>
 
     <div class="search-bar" style="margin-bottom: 20px; display: flex; gap: 15px;">
@@ -637,6 +640,22 @@
             });
             if(res.ok) showToast(`Admin status: ${val}`);
         } catch(e) { console.error(e); }
+    }
+
+    async function logout() {
+        if (!confirm("Вы уверены, что хотите выйти из админ-панели?")) return;
+    
+        try {
+            const res = await fetch('/api/logout', { method: 'POST' });
+            if (res.ok) {
+                // После успешного выхода перенаправляем на страницу входа
+                window.location.href = '/login.html'; // Укажите путь к вашей странице логина
+            }
+        } catch (e) {
+            console.error("Logout error:", e);
+            // Если API не ответило, просто перезагружаем страницу (сервер сам выкинет из-за отсутствия сессии)
+            window.location.reload();
+        }
     }
 
     function renderInv() {
