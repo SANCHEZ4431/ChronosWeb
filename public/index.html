@@ -427,14 +427,18 @@
             allUsers = await r.json();
             renderTable();
             updateStats();
-        } catch(e) { console.error("API Error", e); }
+            console.log("Data refreshed from DB");
+        } catch(e) { 
+            console.error("API Error", e); 
+        }
     }
 
     function renderTable() {
         const body = document.getElementById('userList');
         body.innerHTML = allUsers.map((u, i) => {
+            // Теперь мы просто верим серверу, он уже все проверил
             const isAdmin = u.is_admin === true;
-            const isVip = u.is_vip === true || (u.vip_until && new Date(u.vip_until) > new Date());
+            const isVip = u.is_vip === true; 
             const isBanned = u.banned === true;
             
             return `
@@ -528,10 +532,13 @@
 
     function updateVipUI() {
         const vipInfo = document.getElementById('vip-info');
-        const isVipActive = activeUser.is_vip === true || (activeUser.vip_until && new Date(activeUser.vip_until) > new Date());
-        vipInfo.innerHTML = isVipActive 
-            ? `<b style="color:var(--vip)">✅ VIP ACTIVE</b><br>Expires: ${new Date(activeUser.vip_until).toLocaleDateString()}` 
-            : `<b style="color:var(--text-dim)">❌ VIP INACTIVE</b>`;
+        // Просто проверяем флаг, который прислал сервер после агрегации
+        if (activeUser.is_vip) {
+            const expiryDate = activeUser.vip_until ? new Date(activeUser.vip_until).toLocaleDateString() : "Lifetime";
+            vipInfo.innerHTML = `<b style="color:var(--vip)">✅ VIP ACTIVE</b><br>Expires: ${expiryDate}`;
+        } else {
+            vipInfo.innerHTML = `<b style="color:var(--text-dim)">❌ VIP INACTIVE</b>`;
+        }
     }
 
     async function grantVip() {
