@@ -90,10 +90,12 @@ app.get('/api/users', checkAuth, async (req, res) => {
   }
 });
 
-// Роут для получения статусов (VIP и Админ)
+// Получение VIP и Admin статуса
 app.get('/api/user-status/:id', checkAuth, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
+        const db = mongoose.connection.db; // Получаем доступ к нативной базе через mongoose
+
         const isAdmin = await db.collection('admins').findOne({ _id: userId });
         const vipDoc = await db.collection('vips').findOne({ user_id: userId });
         
@@ -103,15 +105,18 @@ app.get('/api/user-status/:id', checkAuth, async (req, res) => {
             vipExpires: vipDoc ? vipDoc.expires_at : null
         });
     } catch (err) {
+        console.error("Status error:", err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// Роут для назначения VIP
+// Назначение VIP
 app.post('/api/set-vip', checkAuth, async (req, res) => {
     try {
         const { user_id, days } = req.body;
         const uid = parseInt(user_id);
+        const db = mongoose.connection.db;
+
         const expires = new Date();
         expires.setDate(expires.getDate() + parseInt(days));
 
@@ -122,7 +127,7 @@ app.post('/api/set-vip', checkAuth, async (req, res) => {
                     _id: `id_${uid}`,
                     user_id: uid,
                     added_at: new Date(),
-                    added_by: 5059523895, // ID админа (можно брать из сессии)
+                    added_by: 5059523895, 
                     expires_at: expires
                 } 
             },
@@ -134,11 +139,12 @@ app.post('/api/set-vip', checkAuth, async (req, res) => {
     }
 });
 
-// Роут для назначения Админа
+// Управление админами
 app.post('/api/set-admin', checkAuth, async (req, res) => {
     try {
-        const { user_id, action } = req.body; // action: 'add' или 'remove'
+        const { user_id, action } = req.body;
         const uid = parseInt(user_id);
+        const db = mongoose.connection.db;
 
         if (action === 'add') {
             await db.collection('admins').updateOne({ _id: uid }, { $set: { _id: uid } }, { upsert: true });
