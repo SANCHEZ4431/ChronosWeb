@@ -69,7 +69,15 @@ const userSchema = new mongoose.Schema({
   // Системные поля (кулдауны и т.д.)
   cooldowns: { type: mongoose.Schema.Types.Mixed, default: {} },
   last_daily: Date,
-  cooldown_buffer_until: Date
+  cooldown_buffer_until: Date,
+  // Статусы доступа (если бот проверяет их прямо в документе юзера)
+  is_admin: { type: Boolean, default: false },
+  is_vip: { type: Boolean, default: false },
+  vip_until: { type: Date, default: null },
+
+  // Дополнительные поля, которые часто используются в ботах для отображения
+  is_banned: { type: Boolean, default: false },
+  ban_reason: String,
 
 }, { 
   collection: 'users', // Убедитесь, что коллекция называется именно так
