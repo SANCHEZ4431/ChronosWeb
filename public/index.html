@@ -782,15 +782,18 @@
         for (let key in items) {
             let amount, rarity;
     
-            // Проверяем: если значение — объект, берем данные из него
+            // Проверка: является ли значение объектом (как Crown of Mastery) или числом (как shadow_note)
             if (typeof items[key] === 'object' && items[key] !== null) {
                 amount = items[key].amount || 0;
                 rarity = items[key].rarity || 'common';
             } else {
-                // Если это просто число (как в случае с shadow_note)
+                // Если это просто число (случай shadow_note: 5)
                 amount = items[key];
-                rarity = 'common'; // Назначаем редкость по умолчанию
+                rarity = 'common'; 
             }
+    
+            // Пропускаем системные поля, если они есть в inventory
+            if (['exp', 'coins', 'resources'].includes(key)) continue;
     
             box.innerHTML += `
                 <div class="item-tile ${rarity}">
@@ -830,9 +833,11 @@
     // 2. Функция инициализации списка (вызовите её при загрузке страницы)
     function initItemSelector() {
         const sel = document.getElementById('add-item-sel');
-        sel.innerHTML = AVAILABLE_ITEMS.map(item => 
-            `<option value="${item.name}">${item.name} (${item.rarity.toUpperCase()})</option>`
-        ).join('');
+        sel.innerHTML = AVAILABLE_ITEMS.map(item => {
+            // Если rarity отсутствует, используем 'common' по умолчанию
+            const rarityText = (item.rarity || 'common').toUpperCase(); 
+            return `<option value="${item.name}">${item.name} (${rarityText})</option>`;
+        }).join('');
     }
     
     // 3. Обновленная функция добавления
