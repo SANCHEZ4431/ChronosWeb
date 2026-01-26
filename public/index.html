@@ -500,11 +500,7 @@
                 <h3>✨ Item Injection</h3>
                 <div style="display:flex; gap:15px;">
                     <select id="add-item-sel" style="flex:2;">
-                        <option value="Talisman of Knowledge">Talisman of Knowledge</option>
-                        <option value="Golden Purse">Golden Purse</option>
-                        <option value="Void Star">Void Star</option>
-                        <option value="Dragon Core">Dragon Core</option>
-                    </select>
+                        </select>
                     <input type="number" id="add-item-qty" value="1" style="flex:0.5;">
                     <button class="btn btn-save" onclick="addItemToInv()">Inject</button>
                 </div>
@@ -793,14 +789,66 @@
         }
     }
 
+    // 1. Константа со списком всех предметов
+    const AVAILABLE_ITEMS = [
+        {"name": "Talisman of Knowledge", "rarity": "common"},
+        {"name": "Coin Bank", "rarity": "common"},
+        {"name": "Traveler’s Compass", "rarity": "common"},
+        {"name": "Wooden Ring", "rarity": "common"},
+        {"name": "Lucky Charm", "rarity": "common"},
+        {"name": "Energy Drink", "rarity": "rare"},
+        {"name": "Amulet of Wisdom", "rarity": "rare"},
+        {"name": "Silver Quill", "rarity": "rare"},
+        {"name": "Ring of Focus", "rarity": "rare"},
+        {"name": "Scholar’s Book", "rarity": "rare"},
+        {"name": "Golden Purse", "rarity": "epic"},
+        {"name": "Crystal of Luck", "rarity": "epic"},
+        {"name": "Cloak of Insight", "rarity": "epic"},
+        {"name": "Orb of Fortune", "rarity": "epic"},
+        {"name": "Crown of Clarity", "rarity": "epic"},
+        {"name": "Crown of Mastery", "rarity": "legendary"},
+        {"name": "Philosopher's Stone", "rarity": "legendary"},
+        {"name": "Eternal Flame", "rarity": "legendary"},
+        {"name": "Timekeeper’s Hourglass", "rarity": "legendary"},
+        {"name": "Book of Eternity", "rarity": "legendary"},
+        {"name": "shadow_note"},
+    ];
+    
+    // 2. Функция инициализации списка (вызовите её при загрузке страницы)
+    function initItemSelector() {
+        const sel = document.getElementById('add-item-sel');
+        sel.innerHTML = AVAILABLE_ITEMS.map(item => 
+            `<option value="${item.name}">${item.name} (${item.rarity.toUpperCase()})</option>`
+        ).join('');
+    }
+    
+    // 3. Обновленная функция добавления
     function addItemToInv() {
         const name = document.getElementById('add-item-sel').value;
         const qty = parseInt(document.getElementById('add-item-qty').value);
+        
+        // Находим данные о предмете, чтобы узнать его редкость
+        const itemData = AVAILABLE_ITEMS.find(i => i.name === name);
+        
         if(!activeUser.inventory) activeUser.inventory = {};
-        if(activeUser.inventory[name]) activeUser.inventory[name].amount += qty;
-        else activeUser.inventory[name] = { amount: qty, rarity: 'common' };
+        
+        if(activeUser.inventory[name]) {
+            activeUser.inventory[name].amount += qty;
+        } else {
+            activeUser.inventory[name] = { 
+                amount: qty, 
+                rarity: itemData ? itemData.rarity : 'common' 
+            };
+        }
         renderInv();
+        showToast(`Injected: ${name} x${qty}`);
     }
+    
+    // Не забудьте вызвать initItemSelector() в window.onload или в конце скрипта
+    window.addEventListener('load', () => {
+        initItemSelector();
+        loadUsers();
+    });
 
     function remItem(key) {
         delete activeUser.inventory[key];
