@@ -20,7 +20,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Сначала сессии
+// Настройка сессий
 app.use(session({
   secret: 'chronos-secret-key',
   resave: false,
@@ -31,21 +31,19 @@ app.use(session({
   }
 }));
 
-// --- ГЛАВНАЯ СТРАНИЦА И ПРОВЕРКА ВХОДА ---
+// --- ПРОВЕРКА ВХОДА (LOGIN REDIRECT) ---
 app.get('/', (req, res) => {
     if (req.session.isLoggedIn) {
-        // Если залогинен — отдаем index.html из папки public
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
     } else {
-        // Если не залогинен — перекидываем на страницу входа
         res.redirect('/login.html');
     }
 });
 
-// Раздаем статические файлы ПОСЛЕ обработки корня
+// Раздача статики после проверки корня
 app.use(express.static('public'));
 
-// Проверка авторизации для API
+// Middleware для защиты API
 const checkAuth = (req, res, next) => {
   if (req.session.isLoggedIn) {
     next();
@@ -54,7 +52,9 @@ const checkAuth = (req, res, next) => {
   }
 };
 
-// API для входа
+// --- API МАРШРУТЫ ---
+
+// Логин на сайт
 app.post('/api/login', (req, res) => {
   const { password } = req.body;
   if (password === ADMIN_PASSWORD) {
@@ -65,47 +65,25 @@ app.post('/api/login', (req, res) => {
   }
 });
 
-// Получение списка пользователей
+// Получение списка всех юзеров
 app.get('/api/users', checkAuth, async (req, res) => {
   try {
     const users = await User.find({}).sort({ level: -1 }).lean();
-    res.json(users.map(u => ({
-        _id: u._id,
-        username: u.username || 'n/a',
-        level: u.level || 1,
-        exp: u.exp || 0,
-        xp: u.xp || 0,
-        messages: u.messages || 0,
-        coins: u.coins || 0,
-        essence: u.essence || 0,
-        warns: u.warns || 0,
-        commands_count: u.commands_count || 0,
-        clan_id: u.clan_id || '',
-        inventory: u.inventory || {},
-        resources: u.resources || {},
-        skills: u.skills || {},
-        cooldowns: u.cooldowns || {},
-        achievements: u.achievements || [],
-        pets: u.pets || [],
-        ai_profile: u.ai_profile || {},
-        ai_history: u.ai_history || [],
-        ai_enabled: u.ai_enabled || false,
-        // Добавляем флаги для фронтенда, если они есть в схеме
-        is_vip: u.is_vip || false,
-        is_admin: u.is_admin || false
-    })));
+    res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Получение VIP и Admin статуса (из отдельных коллекций)
+// Получение детального статуса (VIP/Admin) из коллекций
 app.get('/api/user-status/:id', checkAuth, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const db = mongoose.connection.db;
+        
         const isAdmin = await db.collection('admins').findOne({ _id: userId });
         const vipDoc = await db.collection('vips').findOne({ user_id: userId });
+        
         res.json({
             isAdmin: !!isAdmin,
             isVip: !!vipDoc,
@@ -116,7 +94,7 @@ app.get('/api/user-status/:id', checkAuth, async (req, res) => {
     }
 });
 
-// Назначение VIP (с синхронизацией в документ юзера для бота)
+// ВЫДАЧА VIP (Обновляет коллекцию vips И флаг в users)
 app.post('/api/set-vip', checkAuth, async (req, res) => {
     try {
         const { user_id, days } = req.body;
@@ -125,19 +103,16 @@ app.post('/api/set-vip', checkAuth, async (req, res) => {
         const expires = new Date();
         expires.setDate(expires.getDate() + parseInt(days));
 
-        // 1. Обновляем спец. коллекцию vips
+        // 1. Обновляем коллекцию vips (для технических проверок)
         await db.collection('vips').updateOne(
             { user_id: uid },
             { $set: { _id: `id_${uid}`, user_id: uid, added_at: new Date(), expires_at: expires } },
             { upsert: true }
         );
 
-        // 2. СИНХРОНИЗАЦИЯ: Обновляем самого юзера, чтобы бот сразу увидел VIP
+        // 2. Обновляем поле в коллекции users (для отображения на сайте/в боте)
         await User.updateOne({ _id: uid }, { 
-            $set: { 
-                is_vip: true, 
-                vip_until: expires 
-            } 
+            $set: { is_vip: true, vip_until: expires } 
         });
 
         res.json({ success: true });
@@ -146,7 +121,7 @@ app.post('/api/set-vip', checkAuth, async (req, res) => {
     }
 });
 
-// Управление админами (с синхронизацией)
+// УПРАВЛЕНИЕ АДМИНАМИ (Обновляет коллекцию admins И флаг в users)
 app.post('/api/set-admin', checkAuth, async (req, res) => {
     try {
         const { user_id, action } = req.body;
@@ -161,7 +136,7 @@ app.post('/api/set-admin', checkAuth, async (req, res) => {
             await db.collection('admins').deleteOne({ _id: uid });
         }
 
-        // 2. СИНХРОНИЗАЦИЯ: Обновляем поле is_admin в документе юзера
+        // 2. Обновляем флаг в коллекции users
         await User.updateOne({ _id: uid }, { 
             $set: { is_admin: isAdding } 
         });
@@ -172,11 +147,11 @@ app.post('/api/set-admin', checkAuth, async (req, res) => {
     }
 });
 
-// Универсальное обновление полей
+// Универсальное обновление данных юзера
 app.post('/api/update', checkAuth, async (req, res) => {
   try {
     const { user_id, updateData } = req.body;
-    // Используем модель User вместо прямого db.collection, чтобы работали валидации схемы
+    // Используем модель User для корректного обновления
     await User.updateOne({ _id: user_id }, { $set: updateData });
     res.json({ success: true });
   } catch (err) {
