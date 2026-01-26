@@ -90,6 +90,67 @@ app.get('/api/users', checkAuth, async (req, res) => {
   }
 });
 
+// Роут для получения статусов (VIP и Админ)
+app.get('/api/user-status/:id', checkAuth, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const isAdmin = await db.collection('admins').findOne({ _id: userId });
+        const vipDoc = await db.collection('vips').findOne({ user_id: userId });
+        
+        res.json({
+            isAdmin: !!isAdmin,
+            isVip: !!vipDoc,
+            vipExpires: vipDoc ? vipDoc.expires_at : null
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Роут для назначения VIP
+app.post('/api/set-vip', checkAuth, async (req, res) => {
+    try {
+        const { user_id, days } = req.body;
+        const uid = parseInt(user_id);
+        const expires = new Date();
+        expires.setDate(expires.getDate() + parseInt(days));
+
+        await db.collection('vips').updateOne(
+            { user_id: uid },
+            { 
+                $set: { 
+                    _id: `id_${uid}`,
+                    user_id: uid,
+                    added_at: new Date(),
+                    added_by: 5059523895, // ID админа (можно брать из сессии)
+                    expires_at: expires
+                } 
+            },
+            { upsert: true }
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Роут для назначения Админа
+app.post('/api/set-admin', checkAuth, async (req, res) => {
+    try {
+        const { user_id, action } = req.body; // action: 'add' или 'remove'
+        const uid = parseInt(user_id);
+
+        if (action === 'add') {
+            await db.collection('admins').updateOne({ _id: uid }, { $set: { _id: uid } }, { upsert: true });
+        } else {
+            await db.collection('admins').deleteOne({ _id: uid });
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/api/update', checkAuth, async (req, res) => {
   try {
     const { user_id, updateData } = req.body;
