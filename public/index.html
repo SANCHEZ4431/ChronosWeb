@@ -5,17 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chronos Admin Panel</title>
   <style>
-    /* Твои стили со звездами остаются без изменений */
     * { box-sizing: border-box; }
     body { margin: 0; font-family: 'Segoe UI', sans-serif; background: radial-gradient(circle at center, #1e1e2f, #0e0e1a); color: #fff; overflow-x: hidden; }
     h1 { text-align: center; color: #5da9ff; margin: 40px 0 20px; text-shadow: 0 0 15px rgba(93, 169, 255, 0.5); position: relative; z-index: 2; }
+    
     .section { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 15px; margin: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; z-index: 2; }
+    
+    /* Стиль для поиска */
+    .search-container { margin-bottom: 20px; display: flex; gap: 10px; }
+    #searchInput { flex: 1; padding: 12px; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 16px; border: 1px solid #444; }
+    #searchInput:focus { outline: none; border-color: #5da9ff; background: rgba(255,255,255,0.15); }
+
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { border: 1px solid #444; padding: 12px; text-align: left; }
     th { background-color: #333; color: #5da9ff; }
+    
+    button { cursor: pointer; padding: 8px 15px; border-radius: 5px; border: none; background: #007bff; color: white; font-weight: bold; transition: 0.2s; }
+    button:hover { background: #0056b3; transform: scale(1.05); }
+    .btn-edit { background: #ffcc00; color: #000; }
+
     .stars { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; pointer-events: none; }
     .star { position: absolute; width: 2px; height: 2px; background: white; border-radius: 50%; animation: twinkle 3s infinite ease-in-out; }
     @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    
+    #editForm { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2c2c3c; padding: 30px; border-radius: 15px; z-index: 1000; box-shadow: 0 0 30px #000; width: 350px; }
+    #editForm label { display: block; margin-top: 10px; color: #5da9ff; font-size: 14px; }
+    #editForm input { display: block; width: 100%; margin-bottom: 10px; padding: 10px; border-radius: 5px; border: none; background: #1e1e2f; color: white; }
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 999; }
   </style>
 </head>
 <body>
@@ -23,55 +39,144 @@
   <h1>CHRONOS WEB PANEL</h1>
 
   <div class="section">
-    <h2>Все игроки</h2>
-    <button onclick="loadUsers()">🔄 Обновить данные</button>
+    <h2>Management</h2>
+    
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Search by Telegram ID or Username..." oninput="filterUsers()">
+      <button onclick="loadUsers()">🔄 Reload</button>
+    </div>
+
     <table id="userTable">
       <thead>
         <tr>
+          <th>#</th>
           <th>ID</th>
           <th>Username</th>
           <th>Lvl</th>
           <th>Exp</th>
           <th>Coins</th>
           <th>Essence</th>
-          <th>Stats (Warn|Wis)</th>
-          <th>AI Partner</th>
+          <th>Stats</th>
+          <th>AI</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
 
+  <div class="overlay" id="overlay" onclick="closeEdit()"></div>
+  <div id="editForm">
+    <h3 id="editTitle" style="margin-top:0">Edit User</h3>
+    <input type="hidden" id="editId">
+    <label>Level:</label><input type="number" id="editLvl">
+    <label>Exp:</label><input type="number" id="editExp">
+    <label>Coins:</label><input type="number" id="editCoins">
+    <label>Essence:</label><input type="number" id="editEssence">
+    <label>Warns:</label><input type="number" id="editWarns">
+    <div style="margin-top: 20px; display: flex; gap: 10px;">
+      <button onclick="saveChanges()" style="flex: 1;">💾 Save</button>
+      <button onclick="closeEdit()" style="background:#666; flex: 1;">Cancel</button>
+    </div>
+  </div>
+
   <script>
+    let allUsers = []; // Здесь храним всех загруженных юзеров
+
     async function loadUsers() {
-      const res = await fetch('/api/users');
-      const data = await res.json();
+      try {
+        const res = await fetch('/api/users');
+        allUsers = await res.json();
+        renderTable(allUsers);
+      } catch (e) {
+        console.error("Failed to load users", e);
+      }
+    }
+
+    // Функция отрисовки таблицы
+    function renderTable(data) {
       const tbody = document.querySelector('#userTable tbody');
       tbody.innerHTML = '';
       
-      data.forEach(u => {
+      data.forEach((u, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${u.user_id}</td>
-          <td>@${u.username}</td>
+          <td style="color: #888;">${index + 1}</td>
+          <td style="font-weight: bold;">${u.user_id}</td>
+          <td style="color: #5da9ff;">@${u.username || 'n/a'}</td>
           <td>${u.level}</td>
-          <td>${u.exp} / ${u.level * 100}</td>
+          <td>${u.exp}</td>
           <td>${u.coins} 💰</td>
           <td>${u.essence} 🔮</td>
           <td>⚠️ ${u.warns} | 🧠 ${u.wisdom}</td>
           <td>🤖 ${u.ai_name}</td>
+          <td><button class="btn-edit" onclick="openEdit(${JSON.stringify(u).replace(/"/g, '&quot;')})">⚙️</button></td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // Инициализация звезд
+    // ФУНКЦИЯ ПОИСКА
+    function filterUsers() {
+      const term = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = allUsers.filter(u => {
+        const idMatch = String(u.user_id).includes(term);
+        const nameMatch = u.username ? u.username.toLowerCase().includes(term) : false;
+        return idMatch || nameMatch;
+      });
+      renderTable(filtered);
+    }
+
+    function openEdit(user) {
+      document.getElementById('editId').value = user.user_id;
+      document.getElementById('editTitle').innerText = 'Edit: ' + (user.username ? '@' + user.username : user.user_id);
+      document.getElementById('editLvl').value = user.level;
+      document.getElementById('editExp').value = user.exp;
+      document.getElementById('editCoins').value = user.coins;
+      document.getElementById('editEssence').value = user.essence;
+      document.getElementById('editWarns').value = user.warns;
+      
+      document.getElementById('editForm').style.display = 'block';
+      document.getElementById('overlay').style.display = 'block';
+    }
+
+    function closeEdit() {
+      document.getElementById('editForm').style.display = 'none';
+      document.getElementById('overlay').style.display = 'none';
+    }
+
+    async function saveChanges() {
+      const payload = {
+        user_id: document.getElementById('editId').value,
+        level: document.getElementById('editLvl').value,
+        exp: document.getElementById('editExp').value,
+        coins: document.getElementById('editCoins').value,
+        essence: document.getElementById('editEssence').value,
+        warns: document.getElementById('editWarns').value
+      };
+
+      const res = await fetch('/api/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        closeEdit();
+        loadUsers(); // Перезагружаем список после сохранения
+      } else {
+        alert('Error updating data');
+      }
+    }
+
+    // Звезды
     const starContainer = document.getElementById('stars');
     for (let i = 0; i < 100; i++) {
       const star = document.createElement('div');
       star.classList.add('star');
       star.style.top = Math.random() * 100 + '%';
       star.style.left = Math.random() * 100 + '%';
+      star.style.animationDelay = Math.random() * 3 + 's';
       starContainer.appendChild(star);
     }
 
