@@ -54,19 +54,16 @@ app.post('/api/login', (req, res) => {
 
 app.get('/api/users', checkAuth, async (req, res) => {
   try {
-    // Используем .lean(), чтобы получить чистые JS-объекты без фильтрации по схеме
+    // .lean() возвращает чистые объекты из БД, не фильтруя их по схеме
     const users = await User.find({}).sort({ level: -1 }).lean();
 
     res.json(users.map(u => {
       return {
-        // Системное (превращаем в строку для фронтенда)
-        _id: u._id ? u._id.toString() : null,
+        _id: u._id,
         username: u.username || 'n/a',
-        
-        // Основные статы
         level: u.level || 1,
         exp: u.exp || 0,
-        xp: u.xp || 0, // в твоей базе есть и exp и xp
+        xp: u.xp || 0,
         messages: u.messages || 0,
         coins: u.coins || 0,
         essence: u.essence || 0,
@@ -74,7 +71,7 @@ app.get('/api/users', checkAuth, async (req, res) => {
         commands_count: u.commands_count || 0,
         clan_id: u.clan_id || '',
 
-        // СЛОЖНЫЕ СТРУКТУРЫ (теперь они не вырежутся благодаря .lean())
+        // Благодаря .lean() и strict:false эти поля больше не будут пустыми:
         inventory: u.inventory || {},
         resources: u.resources || {},
         skills: u.skills || {},
@@ -82,10 +79,8 @@ app.get('/api/users', checkAuth, async (req, res) => {
         achievements: u.achievements || [],
         pets: u.pets || [],
 
-        // ИИ ПРОФИЛЬ
         ai_profile: u.ai_profile || {},
         ai_history: u.ai_history || [],
-        ai_access: u.ai_access || false,
         ai_enabled: u.ai_enabled || false
       };
     }));
