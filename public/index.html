@@ -12,13 +12,11 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
         .container { max-width: 1300px; margin: 0 auto; }
         
-        /* Таблица игроков */
-        table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; margin-top: 20px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #2d2d44; }
         th { background: #1f1f35; color: var(--accent); font-size: 11px; text-transform: uppercase; }
         tr:hover { background: #1f1f35; cursor: pointer; }
 
-        /* Модальное окно */
         #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; }
         #editForm {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -41,10 +39,9 @@
         label { display: block; font-size: 10px; color: #888; margin-top: 8px; text-transform: uppercase; }
         input, select { width: 100%; padding: 8px; margin-top: 4px; background: #0b0b14; border: 1px solid #2d2d44; color: #fff; border-radius: 5px; box-sizing: border-box; }
 
-        /* Инвентарь */
         .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
         .item-card { background: #0b0b14; padding: 10px; border-radius: 8px; border-left: 4px solid #fff; position: relative; }
-        .item-card.legendary { border-color: var(--legendary); box-shadow: inset 0 0 10px rgba(255,174,0,0.1); }
+        .item-card.legendary { border-color: var(--legendary); }
         .item-card.epic { border-color: var(--epic); }
         .item-card.rare { border-color: var(--rare); }
         .item-card .name { font-size: 12px; font-weight: bold; display: block; }
@@ -56,7 +53,7 @@
         .msg-u { color: var(--accent); }
         .msg-a { color: #ff80ab; }
 
-        .tag { display: inline-block; background: #2d2d44; padding: 3px 8px; border-radius: 4px; font-size: 10px; margin: 2px; border: 1px solid #3d3d5c; }
+        .tag { display: inline-block; background: #2d2d44; padding: 3px 8px; border-radius: 4px; font-size: 10px; margin: 2px; }
         .footer { padding: 15px 25px; background: #1f1f35; display: flex; justify-content: flex-end; gap: 10px; }
         .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
         .btn-save { background: var(--accent); color: #000; }
@@ -66,7 +63,7 @@
 <body>
 
 <div class="container">
-    <h1 style="color: var(--accent);">Chronos Master Control <small style="font-size: 12px; color: #666;">v2.0 Database Sync</small></h1>
+    <h1 style="color: var(--accent);">Chronos Master Control <small style="font-size: 12px; color: #666;">v2.1 Stable</small></h1>
     <table id="userTable">
         <thead>
             <tr>
@@ -79,7 +76,9 @@
                 <th>Messages</th>
             </tr>
         </thead>
-        <tbody id="userList"></tbody>
+        <tbody id="userList">
+            <tr><td colspan="7" style="text-align:center;">Загрузка данных...</td></tr>
+        </tbody>
     </table>
 </div>
 
@@ -155,7 +154,7 @@
                     <h4>Memory & Chat Log</h4>
                     <div id="aiChat" class="chat-log"></div>
                     <label>Current AI Quest</label>
-                    <div id="aiQuest" style="background:#0b0b14; padding:10px; border-radius:5px; border: 1px solid #2d2d44; font-size:12px; color:var(--accent);"></div>
+                    <div id="aiQuest" style="background:#0b0b14; padding:10px; border-radius:5px; border: 1px solid #2d2d44; font-size:12px; color:var(--accent); min-height: 20px;"></div>
                 </div>
             </div>
         </div>
@@ -202,42 +201,54 @@
 
     let currentUser = null;
 
-    // Инициализация магазина
+    // Инициализация выпадающего списка предметов
     const itemSelect = document.getElementById('add-item-name');
     ITEMS_DB.forEach(i => {
         let opt = document.createElement('option');
         opt.value = i.name;
-        opt.innerText = `${i.name} [${i.rarity}]`;
+        opt.innerText = `${i.name} [${i.rarity.toUpperCase()}]`;
         itemSelect.appendChild(opt);
     });
 
     async function loadUsers() {
-        const res = await fetch('/api/users');
-        const users = await res.json();
-        const list = document.getElementById('userList');
-        list.innerHTML = users.map(u => {
-            const id = u._id?.$numberLong || u._id;
-            return `
-            <tr onclick='openEdit(${JSON.stringify(u).replace(/'/g, "&apos;")})'>
-                <td><code>${id}</code></td>
-                <td><b>@${u.username}</b></td>
-                <td>Lvl ${u.level}</td>
-                <td>${u.coins?.toLocaleString()}</td>
-                <td>${u.essence}</td>
-                <td>${u.ai_profile?.name || '---'}</td>
-                <td>${u.messages || 0}</td>
-            </tr>`;
-        }).join('');
+        try {
+            const res = await fetch('/api/users');
+            if (!res.ok) throw new Error("Ошибка доступа (401) или ошибка сервера");
+            
+            const users = await res.json();
+            const list = document.getElementById('userList');
+            
+            if (!users || users.length === 0) {
+                list.innerHTML = '<tr><td colspan="7" style="text-align:center;">Пользователи не найдены в базе</td></tr>';
+                return;
+            }
+
+            list.innerHTML = users.map(u => {
+                const id = u._id; 
+                return `
+                <tr onclick='openEdit(${JSON.stringify(u).replace(/'/g, "&apos;")})'>
+                    <td><code>${id}</code></td>
+                    <td><b>@${u.username || 'unknown'}</b></td>
+                    <td>Lvl ${u.level || 0}</td>
+                    <td>${(u.coins || 0).toLocaleString()}</td>
+                    <td>${u.essence || 0}</td>
+                    <td>${u.ai_profile?.name || '---'}</td>
+                    <td>${u.messages || 0}</td>
+                </tr>`;
+            }).join('');
+        } catch (e) {
+            document.getElementById('userList').innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">${e.message}</td></tr>`;
+        }
     }
 
     function openEdit(u) {
         currentUser = JSON.parse(JSON.stringify(u));
-        const id = u._id?.$numberLong || u._id;
+        const id = u._id;
         
         document.getElementById('v-id').value = id;
         document.getElementById('v-user').value = u.username || '';
         document.getElementById('v-lvl').value = u.level || 1;
-        document.getElementById('v-xp').value = u.xp || 0;
+        document.getElementById('v-xp').value = u.xp || u.exp || 0;
         document.getElementById('v-coins').value = u.coins || 0;
         document.getElementById('v-essence').value = u.essence || 0;
         document.getElementById('v-msgs').value = u.messages || 0;
@@ -249,7 +260,7 @@
         const resGrid = document.getElementById('resGrid');
         resGrid.innerHTML = RESOURCES.map(r => `
             <div>
-                <label>${r.replace('_',' ')}</label>
+                <label>${r.replace(/_/g,' ')}</label>
                 <input type="number" value="${u.resources?.[r] || 0}" data-res="${r}">
             </div>
         `).join('');
@@ -258,7 +269,7 @@
         const skillGrid = document.getElementById('skillsGrid');
         skillGrid.innerHTML = SKILLS.map(s => `
             <div class="section">
-                <label>${s.replace('_',' ')}</label>
+                <label>${s.replace(/_/g,' ')}</label>
                 <input type="number" value="${u.skills?.[s] || 0}" data-skill="${s}">
             </div>
         `).join('');
@@ -277,15 +288,15 @@
             <div class="msg"><b class="msg-${m.role === 'user' ? 'u':'a'}">${m.role.toUpperCase()}:</b> ${m.content}</div>
         `).join('');
 
-        // Инвентарь, Ачивки, Питомцы
         renderInventory();
         document.getElementById('achievementsBox').innerHTML = (u.achievements || []).map(a => `<span class="tag">${a}</span>`).join('');
-        document.getElementById('petsBox').innerHTML = (u.pets || []).map(p => `<span class="tag" style="border-color:var(--accent)">🐾 ${p}</span>`).join('');
+        document.getElementById('petsBox').innerHTML = (u.pets || []).map(p => `<span class="tag" style="border-color:var(--accent); border: 1px solid;">🐾 ${p}</span>`).join('');
 
         // Кулдауны
         document.getElementById('cdBox').innerHTML = Object.entries(u.cooldowns || {}).map(([k, v]) => {
-            const date = v.$date ? new Date(v.$date) : new Date(v);
-            return `<div style="margin-bottom:4px;">⏱ <b>${k}:</b> ${date.toLocaleString()}</div>`;
+            const dateVal = v?.$date || v;
+            const date = new Date(dateVal);
+            return `<div style="margin-bottom:4px;">⏱ <b>${k}:</b> ${isNaN(date) ? 'Active' : date.toLocaleString()}</div>`;
         }).join('');
 
         document.getElementById('overlay').style.display = 'block';
@@ -295,15 +306,15 @@
     function renderInventory() {
         const list = document.getElementById('inventoryList');
         list.innerHTML = '';
-        for (const [name, data] of Object.entries(currentUser.inventory || {})) {
-            if (typeof data === 'object' && data.rarity) {
-                list.innerHTML += `
-                <div class="item-card ${data.rarity}">
+        const inv = currentUser.inventory || {};
+        for (const [name, data] of Object.entries(inv)) {
+            const rarityClass = data.rarity || 'common';
+            list.innerHTML += `
+                <div class="item-card ${rarityClass}">
                     <span class="del-btn" onclick="handleRemoveItem('${name}')">✖</span>
                     <span class="name">${name}</span>
-                    <span class="count">x${data.amount}</span>
+                    <span class="count">x${data.amount || 0}</span>
                 </div>`;
-            }
         }
     }
 
@@ -322,8 +333,10 @@
     }
 
     function handleRemoveItem(name) {
-        delete currentUser.inventory[name];
-        renderInventory();
+        if (confirm(`Удалить ${name} из инвентаря?`)) {
+            delete currentUser.inventory[name];
+            renderInventory();
+        }
     }
 
     async function saveData() {
@@ -349,13 +362,24 @@
         document.querySelectorAll('[data-res]').forEach(i => update[`resources.${i.dataset.res}`] = Number(i.value));
         document.querySelectorAll('[data-skill]').forEach(i => update[`skills.${i.dataset.skill}`] = Number(i.value));
 
-        const res = await fetch('/api/update', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ user_id: currentUser._id, updateData: update })
-        });
+        try {
+            const res = await fetch('/api/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: currentUser._id, updateData: update })
+            });
 
-        if (res.ok) { closeEdit(); loadUsers(); }
+            if (res.ok) { 
+                alert("Данные успешно сохранены!");
+                closeEdit(); 
+                loadUsers(); 
+            } else {
+                const err = await res.json();
+                alert("Ошибка при сохранении: " + err.error);
+            }
+        } catch (e) {
+            alert("Ошибка сети: " + e.message);
+        }
     }
 
     function openTab(evt, name) {
@@ -370,6 +394,7 @@
         document.getElementById('editForm').style.display = 'none';
     }
 
+    // Запуск при загрузке страницы
     loadUsers();
 </script>
 </body>
