@@ -32,18 +32,17 @@ app.use(session({
 }));
 
 // --- ГЛАВНАЯ СТРАНИЦА И ПРОВЕРКА ВХОДА ---
-// Этот обработчик проверяет, куда отправить пользователя при заходе на сайт
 app.get('/', (req, res) => {
     if (req.session.isLoggedIn) {
         // Если залогинен — отдаем index.html из папки public
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
     } else {
-        // Если не залогинен — перекидываем на login.html
+        // Если не залогинен — перекидываем на страницу входа
         res.redirect('/login.html');
     }
 });
 
-// Раздаем статические файлы ПОСЛЕ обработки корня, чтобы index.html не отдавался сам по себе
+// Раздаем статические файлы ПОСЛЕ обработки корня
 app.use(express.static('public'));
 
 // Проверка авторизации для API
@@ -66,7 +65,7 @@ app.post('/api/login', (req, res) => {
   }
 });
 
-// Остальные API маршруты (без изменений)
+// Получение списка пользователей
 app.get('/api/users', checkAuth, async (req, res) => {
   try {
     const users = await User.find({}).sort({ level: -1 }).lean();
@@ -90,13 +89,17 @@ app.get('/api/users', checkAuth, async (req, res) => {
         pets: u.pets || [],
         ai_profile: u.ai_profile || {},
         ai_history: u.ai_history || [],
-        ai_enabled: u.ai_enabled || false
+        ai_enabled: u.ai_enabled || false,
+        // Добавляем флаги для фронтенда, если они есть в схеме
+        is_vip: u.is_vip || false,
+        is_admin: u.is_admin || false
     })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Получение VIP и Admin статуса (из отдельных коллекций)
 app.get('/api/user-status/:id', checkAuth, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
@@ -113,6 +116,7 @@ app.get('/api/user-status/:id', checkAuth, async (req, res) => {
     }
 });
 
+// Назначение VIP (с синхронизацией в документ юзера для бота)
 app.post('/api/set-vip', checkAuth, async (req, res) => {
     try {
         const { user_id, days } = req.body;
@@ -120,38 +124,60 @@ app.post('/api/set-vip', checkAuth, async (req, res) => {
         const db = mongoose.connection.db;
         const expires = new Date();
         expires.setDate(expires.getDate() + parseInt(days));
+
+        // 1. Обновляем спец. коллекцию vips
         await db.collection('vips').updateOne(
             { user_id: uid },
             { $set: { _id: `id_${uid}`, user_id: uid, added_at: new Date(), expires_at: expires } },
             { upsert: true }
         );
+
+        // 2. СИНХРОНИЗАЦИЯ: Обновляем самого юзера, чтобы бот сразу увидел VIP
+        await User.updateOne({ _id: uid }, { 
+            $set: { 
+                is_vip: true, 
+                vip_until: expires 
+            } 
+        });
+
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
+// Управление админами (с синхронизацией)
 app.post('/api/set-admin', checkAuth, async (req, res) => {
     try {
         const { user_id, action } = req.body;
         const uid = parseInt(user_id);
         const db = mongoose.connection.db;
-        if (action === 'add') {
+        const isAdding = (action === 'add');
+
+        // 1. Обновляем коллекцию admins
+        if (isAdding) {
             await db.collection('admins').updateOne({ _id: uid }, { $set: { _id: uid } }, { upsert: true });
         } else {
             await db.collection('admins').deleteOne({ _id: uid });
         }
+
+        // 2. СИНХРОНИЗАЦИЯ: Обновляем поле is_admin в документе юзера
+        await User.updateOne({ _id: uid }, { 
+            $set: { is_admin: isAdding } 
+        });
+
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
+// Универсальное обновление полей
 app.post('/api/update', checkAuth, async (req, res) => {
   try {
     const { user_id, updateData } = req.body;
-    const db = mongoose.connection.db;
-    await db.collection('users').updateOne({ _id: user_id }, { $set: updateData });
+    // Используем модель User вместо прямого db.collection, чтобы работали валидации схемы
+    await User.updateOne({ _id: user_id }, { $set: updateData });
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
