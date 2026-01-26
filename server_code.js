@@ -222,6 +222,16 @@ app.post('/api/update', checkAuth, async (req, res) => {
   }
 });
 
+app.post('/api/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ success: false, error: "Logout failed" });
+        }
+        res.clearCookie('connect.sid'); // Очистка куки сессии
+        res.json({ success: true });
+    });
+});
+
 // --- KEEP ALIVE ---
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
 if (RENDER_URL) {
