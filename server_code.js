@@ -69,44 +69,49 @@ app.get('/api/users', checkAuth, async (req, res) => {
     try {
         const db = mongoose.connection.db;
 
-        // Используем агрегацию для объединения данных
         const users = await db.collection('users').aggregate([
             {
                 $lookup: {
                     from: 'vips',
-                    localField: '_id',
-                    foreignField: '_id',
-                    as: 'vip_record'
+                    localField: '_id',      // ID из коллекции users (число)
+                    foreignField: 'user_id', // Поле user_id из коллекции vips
+                    as: 'vip_info'
                 }
             },
             {
                 $lookup: {
                     from: 'admins',
                     localField: '_id',
-                    foreignField: '_id',
-                    as: 'admin_record'
+                    foreignField: '_id', // Обычно в админах просто ID
+                    as: 'admin_info'
                 }
             },
             {
                 $addFields: {
-                    // Перезаписываем флаги данными из соответствующих коллекций
-                    is_admin: { $gt: [{ $size: '$admin_record' }, 0] },
-                    // VIP активен, если есть запись И дата конца больше текущей
+                    // Проверка админа
+                    is_admin: { $gt: [{ $size: '$admin_info' }, 0] },
+                    // Проверка VIP: есть запись И дата expires_at больше текущей
                     is_vip: {
-                        $and: [
-                            { $gt: [{ $size: '$vip_record' }, 0] },
-                            { $gt: [{ $arrayElemAt: ['$vip_record.end_date', 0] }, new Date()] }
-                        ]
+                        $let: {
+                            vars: { vip: { $arrayElemAt: ['$vip_info', 0] } },
+                            in: {
+                                $and: [
+                                    { $ne: ['$$vip', undefined] },
+                                    { $gt: ['$$vip.expires_at', new Date()] }
+                                ]
+                            }
+                        }
                     },
-                    // Сохраняем дату окончания для отображения на сайте
-                    vip_until: { $arrayElemAt: ['$vip_record.end_date', 0] }
+                    // Сохраняем дату для фронтенда
+                    vip_until: { $arrayElemAt: ['$vip_info.expires_at', 0] }
                 }
             },
-            { $project: { vip_record: 0, admin_record: 0 } } // Удаляем временные поля
+            { $project: { vip_info: 0, admin_info: 0 } }
         ]).toArray();
 
         res.json(users);
     } catch (err) {
+        console.error("Aggregation error:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -134,22 +139,44 @@ app.get('/api/user-status/:id', checkAuth, async (req, res) => {
 app.post('/api/set-vip', checkAuth, async (req, res) => {
     try {
         const { user_id, days } = req.body;
-        const uid = parseInt(user_id);
+        // Приводим ID к числу (так как в твоем примере user_id это NumberLong)
+        const uid = Number(user_id); 
         const db = mongoose.connection.db;
-        const expires = new Date();
-        expires.setDate(expires.getDate() + parseInt(days));
 
-        // 1. Обновляем коллекцию vips (для технических проверок)
+        // Рассчитываем дату окончания
+        const expireDate = new Date();
+        expireDate.setDate(expireDate.getDate() + parseInt(days));
+
+        // Обновляем или создаем запись в коллекции vips
         await db.collection('vips').updateOne(
-            { user_id: uid },
-            { $set: { _id: `id_${uid}`, user_id: uid, added_at: new Date(), expires_at: expires } },
+            { user_id: uid }, 
+            { 
+                $set: { 
+                    _id: `id_${uid}`,      // Формат как в твоем примере
+                    user_id: uid,
+                    expires_at: expireDate,
+                    added_at: new Date(),
+                    added_by: Number(req.session.userId) || 0 // ID админа из сессии
+                } 
+            }, 
             { upsert: true }
         );
 
-        // 2. Обновляем поле в коллекции users (для отображения на сайте/в боте)
-        await User.updateOne({ _id: uid }, { 
-            $set: { is_vip: true, vip_until: expires } 
-        });
+        res.json({ success: true, expires_at: expireDate });
+    } catch (err) {
+        console.error("VIP Grant Error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/revoke-vip', checkAuth, async (req, res) => {
+    try {
+        const { user_id } = req.body;
+        const uid = Number(user_id);
+        const db = mongoose.connection.db;
+
+        // Просто удаляем документ из коллекции vips
+        await db.collection('vips').deleteOne({ user_id: uid });
 
         res.json({ success: true });
     } catch (err) {
