@@ -306,8 +306,9 @@
 
 <div id="editForm">
     <div class="tabs-header">
-        <button class="tab-btn active" onclick="openTab(event, 'p-main')">📊 Core Profile</button>
-        <button class="tab-btn" onclick="openTab(event, 'p-assets')">📦 Resources</button>
+        <button class="tab-btn active" onclick="openTab(event, 'p-main')">📊 Profile</button>
+        <button class="tab-btn" onclick="openTab(event, 'p-res')">📦 Resources</button>
+        <button class="tab-btn" onclick="openTab(event, 'p-skills')">⚡ Skills</button>
         <button class="tab-btn" onclick="openTab(event, 'p-inv')">🎒 Inventory</button>
         <button class="tab-btn" onclick="openTab(event, 'p-nova')">🤖 Nova AI</button>
         <button class="tab-btn" onclick="openTab(event, 'p-system')">⚙️ System</button>
@@ -321,7 +322,7 @@
                     <label>Internal ID</label><input type="text" id="v-id" disabled>
                     <label>Alias / Username</label><input type="text" id="v-user">
                     <label>Current Level</label><input type="number" id="v-lvl">
-                    <label>Experience Points (XP/EXP)</label><input type="number" id="v-xp">
+                    <label>Experience Points</label><input type="number" id="v-xp">
                 </div>
                 <div class="card-box">
                     <h3>💎 Economics</h3>
@@ -344,13 +345,16 @@
             </div>
         </div>
 
-        <div id="p-assets" class="tab-content">
+        <div id="p-res" class="tab-content">
             <div class="card-box">
-                <h3>📦 Material Storage</h3>
+                <h3>📦 Raw Materials</h3>
                 <div id="dynamic-res-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 20px;"></div>
             </div>
-            <div class="card-box" style="margin-top:25px;">
-                <h3>⚡ Active Skills</h3>
+        </div>
+
+        <div id="p-skills" class="tab-content">
+            <div class="card-box">
+                <h3>⚡ Active Skill Levels</h3>
                 <div id="dynamic-skills-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 20px;"></div>
             </div>
         </div>
@@ -359,7 +363,11 @@
             <div class="card-box" style="margin-bottom:20px; background: rgba(0, 229, 255, 0.05);">
                 <h3>✨ Item Injection</h3>
                 <div style="display:flex; gap:15px;">
-                    <select id="add-item-sel" style="flex:2;"></select>
+                    <select id="add-item-sel" style="flex:2;">
+                        <option value="Talisman of Knowledge">Talisman of Knowledge</option>
+                        <option value="Golden Purse">Golden Purse</option>
+                        <option value="Void Star">Void Star</option>
+                    </select>
                     <input type="number" id="add-item-qty" value="1" style="flex:0.5;">
                     <button class="btn btn-save" onclick="addItemToInv()">Inject</button>
                 </div>
@@ -413,16 +421,10 @@
 <script>
     const RES_TYPES = ["gold", "wood", "stone", "iron", "magic_crystals", "ores", "fabric", "food", "rare_artifacts"];
     const SKILL_TYPES = ["exp_boost", "resource_gain", "luck", "gold_gain", "wisdom", "cooldown_reduction", "pet_bonus"];
-    const ITEMS_MANIFEST = [
-        {id: "tali_know", name: "Talisman of Knowledge", rarity: "rare"},
-        {id: "gold_purse", name: "Golden Purse", rarity: "epic"},
-        {id: "void_star", name: "Void Star", rarity: "legendary"}
-    ];
 
     let allUsers = [];
     let activeUser = null;
 
-    // --- Init ---
     async function loadUsers() {
         try {
             const r = await fetch('/api/users');
@@ -437,7 +439,7 @@
         body.innerHTML = allUsers.map((u, i) => {
             const isAdmin = u.is_admin === true;
             const isVip = u.is_vip === true || (u.vip_until && new Date(u.vip_until) > new Date());
-            const isBanned = u.banned === true; // Добавлено
+            const isBanned = u.banned === true;
             
             return `
             <tr onclick="editUser(${i})">
@@ -465,7 +467,6 @@
     function editUser(index) {
         activeUser = JSON.parse(JSON.stringify(allUsers[index]));
         
-        // Основные данные
         document.getElementById('v-id').value = activeUser._id;
         document.getElementById('v-user').value = activeUser.username || '';
         document.getElementById('v-lvl').value = activeUser.level || 1;
@@ -473,62 +474,61 @@
         document.getElementById('v-coins').value = activeUser.coins || 0;
         document.getElementById('v-essence').value = activeUser.essence || 0;
         document.getElementById('v-is-admin').value = String(activeUser.is_admin || false);
-        
-        // --- ИСПРАВЛЕНИЕ: Clan ID ---
-        document.getElementById('v-clan').value = activeUser.clan_id || 'No Clan';
-
-        // --- ИСПРАВЛЕНИЕ: Статус Бана и Варны ---
+        document.getElementById('v-clan').value = activeUser.clan_id || '';
         document.getElementById('v-banned').value = String(activeUser.banned || false);
         document.getElementById('v-warns').value = activeUser.warns || 0;
 
-        // VIP Статус
+        // VIP
         const vipInfo = document.getElementById('vip-info');
         const isVipActive = activeUser.is_vip || (activeUser.vip_until && new Date(activeUser.vip_until) > new Date());
-        if (isVipActive) {
-            vipInfo.innerHTML = `✅ Active until: ${new Date(activeUser.vip_until).toLocaleDateString()}`;
-        } else {
-            vipInfo.innerHTML = "❌ Inactive";
-        }
+        vipInfo.innerHTML = isVipActive ? `✅ Until: ${new Date(activeUser.vip_until).toLocaleDateString()}` : "❌ Inactive";
 
-        // Ресурсы и Скиллы (оставляем без изменений)
+        // Resources Tab
         const resGrid = document.getElementById('dynamic-res-grid');
         resGrid.innerHTML = RES_TYPES.map(rt => `
             <div>
-                <label>${rt.replace('_',' ')}</label>
+                <label>${rt.replace(/_/g,' ')}</label>
                 <input type="number" value="${activeUser.resources?.[rt] || 0}" data-res-key="${rt}">
             </div>
         `).join('');
 
+        // Skills Tab
         const skillGrid = document.getElementById('dynamic-skills-grid');
         skillGrid.innerHTML = SKILL_TYPES.map(st => `
             <div>
-                <label>${st.replace('_',' ')}</label>
+                <label>${st.replace(/_/g,' ')}</label>
                 <input type="number" value="${activeUser.skills?.[st] || 0}" data-skill-key="${st}">
             </div>
         `).join('');
 
-        // AI Профиль
+        // AI 
         const ai = activeUser.ai_profile || {};
         document.getElementById('ai-name').value = ai.name || 'Nova';
         document.getElementById('ai-rel').value = ai.relationship_level || 0;
-        document.getElementById('ai-gender').value = ai.gender || 'Unknown';
+        document.getElementById('ai-gender').value = ai.gender || '';
         document.getElementById('ai-style').value = ai.speech_style || '';
 
-        // --- ИСПРАВЛЕНИЕ: История ИИ ---
+        // AI History
         const aiLogs = document.getElementById('ai-logs');
         if (activeUser.ai_history && activeUser.ai_history.length > 0) {
             aiLogs.innerHTML = activeUser.ai_history.map(msg => `
                 <div style="margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px;">
-                    <span style="color: var(--accent)">[${msg.role === 'user' ? 'YOU' : 'NOVA'}]:</span> 
+                    <span style="color: var(--accent)">[${msg.role?.toUpperCase()}]:</span> 
                     <span style="color: #ccc">${msg.content}</span>
                 </div>
             `).join('');
-        } else {
-            aiLogs.innerHTML = '<div style="color: #444; text-align: center; margin-top: 20px;">Memory Empty</div>';
-        }
+        } else { aiLogs.innerHTML = 'Memory Empty'; }
+
+        // Cooldowns
+        const cdList = document.getElementById('cd-list');
+        const cds = activeUser.cooldowns || {};
+        cdList.innerHTML = Object.keys(cds).length ? Object.entries(cds).map(([k, v]) => {
+            const date = new Date(v);
+            const expired = date < new Date();
+            return `<div style="color:${expired ? 'var(--success)' : 'var(--danger)'}"><b>${k}:</b> ${expired ? 'Ready' : date.toLocaleString()}</div>`;
+        }).join('') : 'No active cooldowns';
 
         renderInv();
-
         document.getElementById('overlay').style.display = 'block';
         document.getElementById('editForm').style.display = 'flex';
     }
@@ -548,31 +548,31 @@
         }
     }
 
-    function grantVip() {
-        const now = activeUser.vip_until ? new Date(activeUser.vip_until) : new Date();
-        now.setDate(now.getDate() + 30);
-        activeUser.is_vip = true;
-        activeUser.vip_until = now.toISOString();
-        editUser(allUsers.findIndex(u => u._id === activeUser._id));
+    function addItemToInv() {
+        const name = document.getElementById('add-item-sel').value;
+        const qty = parseInt(document.getElementById('add-item-qty').value);
+        if(!activeUser.inventory) activeUser.inventory = {};
+        if(activeUser.inventory[name]) activeUser.inventory[name].amount += qty;
+        else activeUser.inventory[name] = { amount: qty, rarity: 'common' };
+        renderInv();
     }
 
-    function revokeVip() {
-        activeUser.is_vip = false;
-        activeUser.vip_until = null;
-        editUser(allUsers.findIndex(u => u._id === activeUser._id));
+    function remItem(key) {
+        delete activeUser.inventory[key];
+        renderInv();
     }
 
     async function processSave() {
         const update = {
             username: document.getElementById('v-user').value,
             level: Number(document.getElementById('v-lvl').value),
-            exp: Number(document.getElementById('v-exp').value),
+            exp: Number(document.getElementById('v-xp').value),
             coins: Number(document.getElementById('v-coins').value),
             essence: Number(document.getElementById('v-essence').value),
-            clan_id: document.getElementById('v-clan').value, // Добавлено
+            clan_id: document.getElementById('v-clan').value,
             is_admin: document.getElementById('v-is-admin').value === 'true',
-            banned: document.getElementById('v-banned').value === 'true', // Добавлено
-            warns: Number(document.getElementById('v-warns').value), // Добавлено
+            banned: document.getElementById('v-banned').value === 'true',
+            warns: Number(document.getElementById('v-warns').value),
             is_vip: activeUser.is_vip,
             vip_until: activeUser.vip_until,
             inventory: activeUser.inventory,
@@ -582,12 +582,9 @@
             "ai_profile.speech_style": document.getElementById('ai-style').value
         };
 
-        // Собираем ресурсы
         document.querySelectorAll('[data-res-key]').forEach(el => {
             update[`resources.${el.dataset.resKey}`] = Number(el.value);
         });
-
-        // Собираем скиллы
         document.querySelectorAll('[data-skill-key]').forEach(el => {
             update[`skills.${el.dataset.skillKey}`] = Number(el.value);
         });
@@ -605,13 +602,6 @@
         }
     }
 
-    function showToast(m) {
-        const t = document.getElementById('toast');
-        t.innerText = m;
-        t.classList.add('visible');
-        setTimeout(() => t.classList.remove('visible'), 3000);
-    }
-
     function openTab(e, id) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -622,6 +612,13 @@
     function closeEdit() {
         document.getElementById('overlay').style.display = 'none';
         document.getElementById('editForm').style.display = 'none';
+    }
+
+    function showToast(m) {
+        const t = document.getElementById('toast');
+        t.innerText = m;
+        t.classList.add('visible');
+        setTimeout(() => t.classList.remove('visible'), 3000);
     }
 
     function updateStats() {
