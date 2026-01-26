@@ -65,14 +65,50 @@ app.post('/api/login', (req, res) => {
   }
 });
 
-// Получение списка всех юзеров
 app.get('/api/users', checkAuth, async (req, res) => {
-  try {
-    const users = await User.find({}).sort({ level: -1 }).lean();
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    try {
+        const db = mongoose.connection.db;
+
+        // Используем агрегацию для объединения данных
+        const users = await db.collection('users').aggregate([
+            {
+                $lookup: {
+                    from: 'vips',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'vip_record'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'admins',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'admin_record'
+                }
+            },
+            {
+                $addFields: {
+                    // Перезаписываем флаги данными из соответствующих коллекций
+                    is_admin: { $gt: [{ $size: '$admin_record' }, 0] },
+                    // VIP активен, если есть запись И дата конца больше текущей
+                    is_vip: {
+                        $and: [
+                            { $gt: [{ $size: '$vip_record' }, 0] },
+                            { $gt: [{ $arrayElemAt: ['$vip_record.end_date', 0] }, new Date()] }
+                        ]
+                    },
+                    // Сохраняем дату окончания для отображения на сайте
+                    vip_until: { $arrayElemAt: ['$vip_record.end_date', 0] }
+                }
+            },
+            { $project: { vip_record: 0, admin_record: 0 } } // Удаляем временные поля
+        ]).toArray();
+
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Получение детального статуса (VIP/Admin) из коллекций
