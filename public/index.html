@@ -827,7 +827,7 @@
         {"name": "Eternal Flame", "rarity": "legendary"},
         {"name": "Timekeeper’s Hourglass", "rarity": "legendary"},
         {"name": "Book of Eternity", "rarity": "legendary"},
-        {"name": "shadow_note"}
+        {"name": "shadow_note", "rarity": "common"}
     ];
     
     // 2. Функция инициализации списка (вызовите её при загрузке страницы)
@@ -845,19 +845,28 @@
         const name = document.getElementById('add-item-sel').value;
         const qty = parseInt(document.getElementById('add-item-qty').value);
         
-        // Находим данные о предмете, чтобы узнать его редкость
+        // Находим данные о предмете
         const itemData = AVAILABLE_ITEMS.find(i => i.name === name);
+        const rarity = itemData && itemData.rarity ? itemData.rarity : 'common';
         
         if(!activeUser.inventory) activeUser.inventory = {};
         
-        if(activeUser.inventory[name]) {
+        // Если это shadow_note и он в базе хранится как число, 
+        // конвертируем его в объект для корректной работы интерфейса
+        if (typeof activeUser.inventory[name] === 'number') {
+            activeUser.inventory[name] = { 
+                amount: activeUser.inventory[name] + qty, 
+                rarity: rarity 
+            };
+        } else if (activeUser.inventory[name]) {
             activeUser.inventory[name].amount += qty;
         } else {
             activeUser.inventory[name] = { 
                 amount: qty, 
-                rarity: itemData ? itemData.rarity : 'common' 
+                rarity: rarity 
             };
         }
+        
         renderInv();
         showToast(`Injected: ${name} x${qty}`);
     }
