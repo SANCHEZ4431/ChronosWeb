@@ -1,201 +1,376 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chronos Admin Panel</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: radial-gradient(circle at center, #1e1e2f, #0e0e1a); color: #fff; overflow-x: hidden; min-height: 100vh; }
-    h1 { text-align: center; color: #5da9ff; margin: 40px 0 20px; text-shadow: 0 0 15px rgba(93, 169, 255, 0.5); position: relative; z-index: 2; }
-    
-    .section { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 15px; margin: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; z-index: 2; border: 1px solid rgba(255,255,255,0.1); }
-    
-    .search-container { margin-bottom: 20px; display: flex; gap: 10px; }
-    #searchInput { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: rgba(255,255,255,0.1); color: white; font-size: 16px; transition: 0.3s; }
-    #searchInput:focus { outline: none; border-color: #5da9ff; background: rgba(255,255,255,0.15); box-shadow: 0 0 10px rgba(93, 169, 255, 0.3); }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chronos Master Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0f1a;
+            --surface: #1a1a2e;
+            --accent: #5da9ff;
+            --text: #e0e0e0;
+            --legendary: #ff8000;
+            --epic: #a335ee;
+            --rare: #0070dd;
+            --common: #ffffff;
+            --danger: #ff4d4d;
+        }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #444; padding: 12px; text-align: left; }
-    th { background-color: #333; color: #5da9ff; text-transform: uppercase; font-size: 0.85em; letter-spacing: 1px; }
-    tr:hover { background: rgba(255,255,255,0.03); }
-    
-    button { cursor: pointer; padding: 10px 18px; border-radius: 5px; border: none; background: #007bff; color: white; font-weight: bold; transition: 0.2s; }
-    button:hover { background: #0056b3; transform: translateY(-1px); }
-    .btn-edit { background: #ffcc00; color: #000; padding: 6px 10px; }
-    .btn-logout { background: #ff4444; margin-left: 10px; }
-    .btn-logout:hover { background: #cc0000; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 20px;
+        }
 
-    .stars { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; pointer-events: none; }
-    .star { position: absolute; width: 2px; height: 2px; background: white; border-radius: 50%; animation: twinkle 3s infinite ease-in-out; }
-    @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-    
-    #editForm { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2c2c3c; padding: 30px; border-radius: 15px; z-index: 1000; box-shadow: 0 0 50px #000; width: 350px; border: 1px solid #5da9ff; }
-    #editForm label { display: block; margin-top: 10px; color: #5da9ff; font-size: 13px; font-weight: bold; }
-    #editForm input { display: block; width: 100%; margin-bottom: 10px; padding: 10px; border-radius: 5px; border: none; background: #1e1e2f; color: white; border: 1px solid #444; }
-    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; backdrop-filter: blur(3px); }
-  </style>
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        /* Таблица */
+        table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #2d2d44; }
+        th { background: #252545; color: var(--accent); text-transform: uppercase; font-size: 12px; }
+        tr:hover { background: #252545; cursor: pointer; }
+
+        /* Модалка */
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; }
+        #editForm {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: var(--surface); width: 950px; max-height: 90vh; border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5); z-index: 1000; overflow: hidden; flex-direction: column;
+        }
+
+        /* Табы */
+        .tabs { display: flex; background: #252545; padding: 10px 20px 0; gap: 10px; }
+        .tab-btn {
+            padding: 12px 20px; border: none; background: none; color: #888;
+            cursor: pointer; border-radius: 8px 8px 0 0; font-weight: 600;
+        }
+        .tab-btn.active { background: var(--surface); color: var(--accent); }
+
+        .content { padding: 25px; overflow-y: auto; flex-grow: 1; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Сетки */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .section { background: #252545; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .section h4 { margin-top: 0; color: var(--accent); border-bottom: 1px solid #3d3d5c; padding-bottom: 10px; margin-bottom: 15px; }
+        
+        label { display: block; font-size: 11px; color: #888; margin-top: 10px; text-transform: uppercase; }
+        input, select {
+            width: 100%; padding: 10px; margin-top: 5px; background: #0f0f1a;
+            border: 1px solid #3d3d5c; color: #fff; border-radius: 6px; box-sizing: border-box;
+        }
+
+        /* Инвентарь */
+        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 15px; }
+        .item-card {
+            background: #0f0f1a; padding: 12px; border-radius: 8px; border-left: 4px solid #fff;
+            position: relative;
+        }
+        .item-card.legendary { border-color: var(--legendary); }
+        .item-card.epic { border-color: var(--epic); }
+        .item-card.rare { border-color: var(--rare); }
+        .item-card .name { font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; }
+        .item-card .count { color: var(--accent); font-size: 14px; }
+        .del-btn { position: absolute; top: 5px; right: 8px; color: var(--danger); cursor: pointer; font-weight: bold; }
+
+        .chat-log { background: #0f0f1a; padding: 10px; border-radius: 8px; font-size: 12px; max-height: 200px; overflow-y: auto; }
+        .tag { display: inline-block; background: #3d3d5c; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin: 2px; }
+
+        .footer { padding: 20px; background: #252545; display: flex; gap: 15px; justify-content: flex-end; }
+        .btn { padding: 12px 25px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-save { background: var(--accent); color: white; }
+        .btn-close { background: #444; color: white; }
+    </style>
 </head>
 <body>
-  <div class="stars" id="stars"></div>
-  <h1>CHRONOS WEB PANEL</h1>
 
-  <div class="section">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <h2 style="margin:0">User Management</h2>
-      <button class="btn-logout" onclick="logout()">🚪 Logout</button>
-    </div>
-    
-    <div class="search-container">
-      <input type="text" id="searchInput" placeholder="Search by Telegram ID or Username..." oninput="filterUsers()">
-      <button onclick="loadUsers()">🔄 Refresh</button>
-    </div>
-
+<div class="container">
+    <h1>Chronos Master Control</h1>
     <table id="userTable">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>ID</th>
-          <th>Username</th>
-          <th>Lvl</th>
-          <th>Exp</th>
-          <th>Coins</th>
-          <th>Essence</th>
-          <th>Stats</th>
-          <th>AI</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Level</th>
+                <th>Coins</th>
+                <th>Essence</th>
+                <th>AI Name</th>
+                <th>Warns</th>
+            </tr>
+        </thead>
+        <tbody id="userList"></tbody>
     </table>
-  </div>
+</div>
 
-  <div class="overlay" id="overlay" onclick="closeEdit()"></div>
-  <div id="editForm">
-    <h3 id="editTitle" style="margin-top:0; color: #5da9ff;">Edit User</h3>
-    <input type="hidden" id="editId">
-    <label>Level:</label><input type="number" id="editLvl">
-    <label>Exp:</label><input type="number" id="editExp">
-    <label>Coins:</label><input type="number" id="editCoins">
-    <label>Essence:</label><input type="number" id="editEssence">
-    <label>Warns:</label><input type="number" id="editWarns">
-    <div style="margin-top: 20px; display: flex; gap: 10px;">
-      <button onclick="saveChanges()" style="flex: 1;">💾 Save</button>
-      <button onclick="closeEdit()" style="background:#666; flex: 1;">Cancel</button>
+<div id="overlay" onclick="closeEdit()"></div>
+
+<div id="editForm">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'main')">📊 Общее</button>
+        <button class="tab-btn" onclick="openTab(event, 'inventory')">🎒 Инвентарь</button>
+        <button class="tab-btn" onclick="openTab(event, 'nova')">🤖 Nova AI</button>
+        <button class="tab-btn" onclick="openTab(event, 'skills')">⚡ Навыки</button>
     </div>
-  </div>
 
-  <script>
-    // 1. Проверка авторизации сразу при запуске
-    if (localStorage.getItem('isLogged') !== 'true') {
-      window.location.href = '/login.html';
-    }
+    <div class="content">
+        <div id="main" class="tab-content active">
+            <div class="grid">
+                <div class="section">
+                    <h4>Базовые параметры</h4>
+                    <input type="hidden" id="editId">
+                    <label>Никнейм</label><input type="text" id="inpUser">
+                    <label>Уровень / Сообщения</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="inpLvl">
+                        <input type="number" id="inpMsgs">
+                    </div>
+                    <label>Валюта (Coins / Essence)</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="inpCoins">
+                        <input type="number" id="inpEssence">
+                    </div>
+                </div>
+                <div class="section">
+                    <h4>Склад ресурсов</h4>
+                    <div id="resGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                        </div>
+                </div>
+                <div class="section">
+                    <h4>Системное</h4>
+                    <label>Clan ID</label><input type="text" id="inpClan">
+                    <label>Варны</label><input type="number" id="inpWarns">
+                    <label>Команд</label><input type="number" id="inpCmds">
+                </div>
+            </div>
+            <h4>🏆 Достижения</h4>
+            <div id="achievementsContainer"></div>
+        </div>
 
-    let allUsers = []; 
+        <div id="inventory" class="tab-content">
+            <div class="section" style="background: #252545; border: 1px solid var(--accent);">
+                <h4>🎁 Выдать предмет</h4>
+                <div style="display:flex; gap:10px;">
+                    <select id="addItemSelect" style="flex:2;"></select>
+                    <input type="number" id="addItemCount" value="1" style="flex:0.5;">
+                    <button class="btn btn-save" onclick="addItemToUser()" style="padding:0 20px;">Добавить</button>
+                </div>
+            </div>
+            <h4>🎒 Предметы игрока</h4>
+            <div id="inventoryList" class="inv-grid"></div>
+        </div>
 
-    // 2. Основная функция загрузки
+        <div id="nova" class="tab-content">
+            <div class="grid">
+                <div class="section">
+                    <h4>Профиль Новы</h4>
+                    <label>Имя</label><input type="text" id="aiName">
+                    <label>Возраст</label><input type="number" id="aiAge">
+                    <label>Отношения</label><input type="number" step="0.1" id="aiRel">
+                    <label>Стиль речи</label><input type="text" id="aiStyle">
+                </div>
+                <div class="section" style="grid-column: span 2;">
+                    <h4>Лог диалога</h4>
+                    <div id="aiChat" class="chat-log"></div>
+                    <h4 style="margin-top:15px;">Текущий квест</h4>
+                    <div id="aiQuest" class="section" style="background:#0f0f1a; margin-bottom:0;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="skills" class="tab-content">
+            <h4>Прокачка навыков</h4>
+            <div id="skillsGrid" class="grid"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button class="btn btn-close" onclick="closeEdit()">Отмена</button>
+        <button class="btn btn-save" onclick="saveData()">💾 Сохранить изменения</button>
+    </div>
+</div>
+
+<script>
+    // КОНСТАНТЫ
+    const AVAILABLE_RESOURCES = ["wood", "stone", "iron", "gold", "food", "magic_crystals", "ores", "fabric", "rare_artifacts"];
+    const AVAILABLE_ITEMS = [
+        {"name": "Talisman of Knowledge", "rarity": "common"}, {"name": "Coin Bank", "rarity": "common"},
+        {"name": "Traveler’s Compass", "rarity": "common"}, {"name": "Wooden Ring", "rarity": "common"},
+        {"name": "Lucky Charm", "rarity": "common"}, {"name": "Energy Drink", "rarity": "rare"},
+        {"name": "Amulet of Wisdom", "rarity": "rare"}, {"name": "Silver Quill", "rarity": "rare"},
+        {"name": "Ring of Focus", "rarity": "rare"}, {"name": "Scholar’s Book", "rarity": "rare"},
+        {"name": "Golden Purse", "rarity": "epic"}, {"name": "Crystal of Luck", "rarity": "epic"},
+        {"name": "Cloak of Insight", "rarity": "epic"}, {"name": "Orb of Fortune", "rarity": "epic"},
+        {"name": "Crown of Clarity", "rarity": "epic"}, {"name": "Crown of Mastery", "rarity": "legendary"},
+        {"name": "Philosopher's Stone", "rarity": "legendary"}, {"name": "Eternal Flame", "rarity": "legendary"},
+        {"name": "Timekeeper’s Hourglass", "rarity": "legendary"}, {"name": "Book of Eternity", "rarity": "legendary"}
+    ];
+
+    let currentUser = null;
+
+    // Инициализация выпадающего списка
+    const select = document.getElementById('addItemSelect');
+    AVAILABLE_ITEMS.forEach(i => {
+        let opt = document.createElement('option');
+        opt.value = i.name;
+        opt.innerText = `${i.name} (${i.rarity})`;
+        select.appendChild(opt);
+    });
+
     async function loadUsers() {
-      try {
-        const res = await fetch('/api/users');
-        if (res.status === 401) {
-          logout();
-          return;
+        try {
+            const res = await fetch('/api/users');
+            const users = await res.json();
+            const list = document.getElementById('userList');
+            list.innerHTML = users.map(u => `
+                <tr onclick='openEdit(${JSON.stringify(u).replace(/'/g, "&apos;")})'>
+                    <td><b>@${u.username}</b></td>
+                    <td>Lvl ${u.level}</td>
+                    <td>${u.coins.toLocaleString()}</td>
+                    <td>${u.essence}</td>
+                    <td>${u.ai_profile?.name || 'Nova'}</td>
+                    <td>${u.warns}</td>
+                </tr>
+            `).join('');
+        } catch(e) { console.error("Load error:", e); }
+    }
+
+    function openEdit(u) {
+        currentUser = JSON.parse(JSON.stringify(u)); // Глубокая копия
+        document.getElementById('editId').value = u._id;
+        document.getElementById('inpUser').value = u.username;
+        document.getElementById('inpLvl').value = u.level;
+        document.getElementById('inpMsgs').value = u.messages || 0;
+        document.getElementById('inpCoins').value = u.coins;
+        document.getElementById('inpEssence').value = u.essence;
+        document.getElementById('inpClan').value = u.clan_id || '';
+        document.getElementById('inpCmds').value = u.commands_count || 0;
+        document.getElementById('inpWarns').value = u.warns || 0;
+
+        // Ресурсы
+        const resGrid = document.getElementById('resGrid');
+        resGrid.innerHTML = AVAILABLE_RESOURCES.map(r => `
+            <div>
+                <label>${r.replace('_',' ')}</label>
+                <input type="number" id="res_${r}" value="${u.resources?.[r] || 0}" data-res-key="${r}">
+            </div>
+        `).join('');
+
+        renderInventory();
+
+        // AI
+        const ai = u.ai_profile || {};
+        document.getElementById('aiName').value = ai.name || '';
+        document.getElementById('aiAge').value = ai.age || '';
+        document.getElementById('aiRel').value = ai.relationship_level || 0;
+        document.getElementById('aiStyle').value = ai.speech_style || '';
+        document.getElementById('aiChat').innerHTML = u.ai_history?.map(m => `
+            <div class="msg"><b>${m.role}:</b> ${m.content}</div>
+        `).join('') || 'История пуста';
+        document.getElementById('aiQuest').innerText = ai.quest?.meta?.text || 'Нет квеста';
+
+        // Навыки
+        const skGrid = document.getElementById('skillsGrid');
+        skGrid.innerHTML = Object.entries(u.skills || {}).map(([s, v]) => `
+            <div><label>${s}</label><input type="number" value="${v}" data-skill="${s}"></div>
+        `).join('');
+
+        // Ачивки
+        document.getElementById('achievementsContainer').innerHTML = (u.achievements || []).map(a => `<span class="tag">${a}</span>`).join('');
+
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('editForm').style.display = 'flex';
+    }
+
+    function renderInventory() {
+        const invList = document.getElementById('inventoryList');
+        invList.innerHTML = '';
+        for (const [name, data] of Object.entries(currentUser.inventory || {})) {
+            if (typeof data === 'object') {
+                invList.innerHTML += `
+                    <div class="item-card ${data.rarity}">
+                        <span class="del-btn" onclick="removeItem('${name}')">×</span>
+                        <span class="name">${name}</span>
+                        <span class="count">x${data.amount}</span>
+                    </div>`;
+            }
         }
-        allUsers = await res.json();
-        renderTable(allUsers);
-      } catch (e) {
-        console.error("Connection error", e);
-      }
     }
 
-    function renderTable(data) {
-      const tbody = document.querySelector('#userTable tbody');
-      tbody.innerHTML = '';
-      
-      data.forEach((u, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="color: #888;">${index + 1}</td>
-          <td style="font-weight: bold; font-family: monospace;">${u.user_id}</td>
-          <td style="color: #5da9ff;">@${u.username || 'n/a'}</td>
-          <td>${u.level}</td>
-          <td>${u.exp}</td>
-          <td>${u.coins} 💰</td>
-          <td>${u.essence} 🔮</td>
-          <td>⚠️ ${u.warns} | 🧠 ${u.wisdom}</td>
-          <td>🤖 ${u.ai_name}</td>
-          <td><button class="btn-edit" onclick="openEdit(${JSON.stringify(u).replace(/"/g, '&quot;')})">⚙️</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
+    function addItemToUser() {
+        const name = document.getElementById('addItemSelect').value;
+        const count = parseInt(document.getElementById('addItemCount').value);
+        const info = AVAILABLE_ITEMS.find(i => i.name === name);
+
+        if (!currentUser.inventory) currentUser.inventory = {};
+        if (currentUser.inventory[name]) {
+            currentUser.inventory[name].amount += count;
+        } else {
+            currentUser.inventory[name] = { amount: count, rarity: info.rarity };
+        }
+        renderInventory();
     }
 
-    function filterUsers() {
-      const term = document.getElementById('searchInput').value.toLowerCase();
-      const filtered = allUsers.filter(u => {
-        return String(u.user_id).includes(term) || (u.username && u.username.toLowerCase().includes(term));
-      });
-      renderTable(filtered);
+    function removeItem(name) {
+        delete currentUser.inventory[name];
+        renderInventory();
     }
 
-    function openEdit(user) {
-      document.getElementById('editId').value = user.user_id;
-      document.getElementById('editTitle').innerText = 'Edit: ' + (user.username ? '@' + user.username : user.user_id);
-      document.getElementById('editLvl').value = user.level;
-      document.getElementById('editExp').value = user.exp;
-      document.getElementById('editCoins').value = user.coins;
-      document.getElementById('editEssence').value = user.essence;
-      document.getElementById('editWarns').value = user.warns;
-      document.getElementById('editForm').style.display = 'block';
-      document.getElementById('overlay').style.display = 'block';
+    async function saveData() {
+        const updateData = {
+            "username": document.getElementById('inpUser').value,
+            "level": Number(document.getElementById('inpLvl').value),
+            "coins": Number(document.getElementById('inpCoins').value),
+            "essence": Number(document.getElementById('inpEssence').value),
+            "warns": Number(document.getElementById('inpWarns').value),
+            "clan_id": document.getElementById('inpClan').value,
+            "inventory": currentUser.inventory,
+            "ai_profile.name": document.getElementById('aiName').value,
+            "ai_profile.relationship_level": Number(document.getElementById('aiRel').value),
+            "ai_profile.speech_style": document.getElementById('aiStyle').value,
+            "ai_profile.age": Number(document.getElementById('aiAge').value)
+        };
+
+        // Собираем ресурсы динамически
+        document.querySelectorAll('[data-res-key]').forEach(input => {
+            updateData[`resources.${input.dataset.resKey}`] = Number(input.value);
+        });
+
+        // Собираем навыки
+        document.querySelectorAll('[data-skill]').forEach(input => {
+            updateData[`skills.${input.dataset.skill}`] = Number(input.value);
+        });
+
+        const res = await fetch('/api/update', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ user_id: currentUser._id, updateData })
+        });
+
+        if (res.ok) {
+            closeEdit();
+            loadUsers();
+        } else { alert("Ошибка при сохранении!"); }
+    }
+
+    function openTab(evt, tabName) {
+        const contents = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
+        const btns = document.getElementsByClassName("tab-btn");
+        for (let i = 0; i < btns.length; i++) btns[i].classList.remove("active");
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
     }
 
     function closeEdit() {
-      document.getElementById('editForm').style.display = 'none';
-      document.getElementById('overlay').style.display = 'none';
-    }
-
-    async function saveChanges() {
-      const payload = {
-        user_id: document.getElementById('editId').value,
-        level: parseInt(document.getElementById('editLvl').value),
-        exp: parseInt(document.getElementById('editExp').value),
-        coins: parseInt(document.getElementById('editCoins').value),
-        essence: parseInt(document.getElementById('editEssence').value),
-        warns: parseInt(document.getElementById('editWarns').value)
-      };
-
-      const res = await fetch('/api/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        closeEdit();
-        loadUsers();
-      } else {
-        alert('Update failed. Check session.');
-      }
-    }
-
-    function logout() {
-      localStorage.removeItem('isLogged');
-      window.location.href = '/login.html';
-    }
-
-    // Star background logic
-    const starContainer = document.getElementById('stars');
-    for (let i = 0; i < 120; i++) {
-      const star = document.createElement('div');
-      star.className = 'star';
-      star.style.top = Math.random() * 100 + '%';
-      star.style.left = Math.random() * 100 + '%';
-      star.style.animationDelay = Math.random() * 3 + 's';
-      starContainer.appendChild(star);
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('editForm').style.display = 'none';
     }
 
     loadUsers();
-  </script>
+</script>
+
 </body>
 </html>
