@@ -435,9 +435,9 @@
     function renderTable() {
         const body = document.getElementById('userList');
         body.innerHTML = allUsers.map((u, i) => {
-            // Исправление отображения статусов
             const isAdmin = u.is_admin === true;
             const isVip = u.is_vip === true || (u.vip_until && new Date(u.vip_until) > new Date());
+            const isBanned = u.banned === true; // Добавлено
             
             return `
             <tr onclick="editUser(${i})">
@@ -453,19 +453,19 @@
                 <td>📦 ${Object.values(u.resources || {}).reduce((a,b)=>a+b, 0)}</td>
                 <td>${u.ai_profile?.name || 'Nova'}</td>
                 <td>
+                    ${isBanned ? '<span class="badge" style="background:var(--danger)">Banned</span>' : ''}
                     ${isAdmin ? '<span class="badge badge-admin">Admin</span>' : ''}
                     ${isVip ? '<span class="badge badge-vip">VIP</span>' : ''}
-                    ${!isAdmin && !isVip ? '<span class="badge" style="background:rgba(255,255,255,0.05)">User</span>' : ''}
+                    ${!isAdmin && !isVip && !isBanned ? '<span class="badge" style="background:rgba(255,255,255,0.05)">User</span>' : ''}
                 </td>
             </tr>`;
         }).join('');
     }
 
-    // --- Modal Logic ---
     function editUser(index) {
         activeUser = JSON.parse(JSON.stringify(allUsers[index]));
         
-        // Основные данные (Фикс XP/EXP)
+        // Основные данные
         document.getElementById('v-id').value = activeUser._id;
         document.getElementById('v-user').value = activeUser.username || '';
         document.getElementById('v-lvl').value = activeUser.level || 1;
@@ -473,16 +473,24 @@
         document.getElementById('v-coins').value = activeUser.coins || 0;
         document.getElementById('v-essence').value = activeUser.essence || 0;
         document.getElementById('v-is-admin').value = String(activeUser.is_admin || false);
+        
+        // --- ИСПРАВЛЕНИЕ: Clan ID ---
+        document.getElementById('v-clan').value = activeUser.clan_id || 'No Clan';
+
+        // --- ИСПРАВЛЕНИЕ: Статус Бана и Варны ---
+        document.getElementById('v-banned').value = String(activeUser.banned || false);
+        document.getElementById('v-warns').value = activeUser.warns || 0;
 
         // VIP Статус
         const vipInfo = document.getElementById('vip-info');
-        if (activeUser.is_vip) {
+        const isVipActive = activeUser.is_vip || (activeUser.vip_until && new Date(activeUser.vip_until) > new Date());
+        if (isVipActive) {
             vipInfo.innerHTML = `✅ Active until: ${new Date(activeUser.vip_until).toLocaleDateString()}`;
         } else {
             vipInfo.innerHTML = "❌ Inactive";
         }
 
-        // Динамические ресурсы
+        // Ресурсы и Скиллы (оставляем без изменений)
         const resGrid = document.getElementById('dynamic-res-grid');
         resGrid.innerHTML = RES_TYPES.map(rt => `
             <div>
@@ -491,7 +499,6 @@
             </div>
         `).join('');
 
-        // Скиллы
         const skillGrid = document.getElementById('dynamic-skills-grid');
         skillGrid.innerHTML = SKILL_TYPES.map(st => `
             <div>
@@ -500,14 +507,26 @@
             </div>
         `).join('');
 
-        // AI
+        // AI Профиль
         const ai = activeUser.ai_profile || {};
         document.getElementById('ai-name').value = ai.name || 'Nova';
         document.getElementById('ai-rel').value = ai.relationship_level || 0;
         document.getElementById('ai-gender').value = ai.gender || 'Unknown';
         document.getElementById('ai-style').value = ai.speech_style || '';
 
-        // Инвентарь
+        // --- ИСПРАВЛЕНИЕ: История ИИ ---
+        const aiLogs = document.getElementById('ai-logs');
+        if (activeUser.ai_history && activeUser.ai_history.length > 0) {
+            aiLogs.innerHTML = activeUser.ai_history.map(msg => `
+                <div style="margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px;">
+                    <span style="color: var(--accent)">[${msg.role === 'user' ? 'YOU' : 'NOVA'}]:</span> 
+                    <span style="color: #ccc">${msg.content}</span>
+                </div>
+            `).join('');
+        } else {
+            aiLogs.innerHTML = '<div style="color: #444; text-align: center; margin-top: 20px;">Memory Empty</div>';
+        }
+
         renderInv();
 
         document.getElementById('overlay').style.display = 'block';
@@ -547,11 +566,13 @@
         const update = {
             username: document.getElementById('v-user').value,
             level: Number(document.getElementById('v-lvl').value),
-            exp: Number(document.getElementById('v-exp').value), // Сохраняем в оба поля для надежности
-            xp: Number(document.getElementById('v-xp').value),
+            exp: Number(document.getElementById('v-exp').value),
             coins: Number(document.getElementById('v-coins').value),
             essence: Number(document.getElementById('v-essence').value),
+            clan_id: document.getElementById('v-clan').value, // Добавлено
             is_admin: document.getElementById('v-is-admin').value === 'true',
+            banned: document.getElementById('v-banned').value === 'true', // Добавлено
+            warns: Number(document.getElementById('v-warns').value), // Добавлено
             is_vip: activeUser.is_vip,
             vip_until: activeUser.vip_until,
             inventory: activeUser.inventory,
