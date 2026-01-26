@@ -3,30 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Master Control v2.8 Premium</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <title>Chronos Master Control v3.2 Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0b0b14; 
-            --surface: #161625; 
-            --surface-light: #1f1f35;
-            --accent: #5da9ff; 
-            --accent-glow: rgba(93, 169, 255, 0.3);
-            --text: #e0e0e0;
-            --text-dim: #888;
-            --legendary: #ffae00; 
-            --epic: #bf40bf; 
-            --rare: #0070dd; 
+            --bg: #05050a; 
+            --surface: #0f0f1e; 
+            --surface-light: #1a1a2e;
+            --accent: #00e5ff; 
+            --accent-glow: rgba(0, 229, 255, 0.3);
+            --text: #f0f0f0;
+            --text-dim: #94a3b8;
+            --legendary: #ffaa00; 
+            --epic: #d000ff; 
+            --rare: #0077ff; 
             --common: #ffffff;
-            --danger: #ff4d4d;
-            --success: #00e676;
-            --vip: #f1c40f;
+            --danger: #ff3366;
+            --success: #00ffa3;
+            --vip: #fcd34d;
+            --admin: #ef4444;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
+        /* --- Global Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--surface-light); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--surface-light); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
         body { 
@@ -36,79 +37,111 @@
             margin: 0; 
             padding: 0;
             overflow-x: hidden;
+            line-height: 1.5;
         }
 
         .container { 
-            max-width: 1400px; 
+            max-width: 1500px; 
             margin: 0 auto; 
-            padding: 40px 20px; 
+            padding: 40px 25px; 
         }
 
+        /* --- Header --- */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            background: linear-gradient(90deg, var(--surface) 0%, transparent 100%);
+            padding: 20px;
+            border-radius: 16px;
+            border-left: 4px solid var(--accent);
         }
 
         .logo h1 {
             margin: 0;
             font-weight: 800;
             letter-spacing: -1px;
-            background: linear-gradient(90deg, #fff, var(--accent));
+            font-size: 28px;
+            background: linear-gradient(135deg, #fff 30%, var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* Main Table */
-        .table-wrapper {
+        .stats-overview {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-pill {
+            background: var(--surface-light);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-pill span { color: var(--accent); font-weight: 800; }
+
+        /* --- Main Data Table --- */
+        .table-card {
             background: var(--surface);
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #2d2d44;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,255,255,0.08);
             overflow: hidden;
         }
 
         table { width: 100%; border-collapse: collapse; }
         th { 
-            background: var(--surface-light); 
-            color: var(--accent); 
-            font-size: 10px; 
+            background: rgba(255,255,255,0.02); 
+            color: var(--text-dim); 
+            font-size: 11px; 
             text-transform: uppercase; 
-            padding: 15px;
+            padding: 20px;
             text-align: left;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         td { 
-            padding: 15px; 
-            border-bottom: 1px solid #2d2d44; 
+            padding: 18px 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.03); 
             font-size: 14px;
         }
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: rgba(255,255,255,0.02); cursor: pointer; }
+        tr:hover td { background: rgba(0, 229, 255, 0.03); cursor: pointer; }
         
-        .user-id { font-family: 'Fira Code', monospace; color: var(--text-dim); font-size: 12px; }
-        .username { font-weight: 600; color: #fff; }
-        .badge {
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 10px;
+        .user-cell { display: flex; align-items: center; gap: 12px; }
+        .avatar-stub {
+            width: 35px; height: 35px;
+            background: var(--surface-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: 800;
-            margin-left: 5px;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 900;
             text-transform: uppercase;
         }
-        .badge-vip { background: var(--vip); color: #000; }
-        .badge-admin { background: var(--danger); color: #fff; }
+        .badge-vip { background: var(--vip); color: #000; box-shadow: 0 0 15px rgba(241, 196, 15, 0.3); }
+        .badge-admin { background: var(--admin); color: #fff; box-shadow: 0 0 15px rgba(255, 51, 102, 0.3); }
 
-        /* Modal & Form */
+        /* --- Editor Modal --- */
         #overlay { 
             display: none; 
             position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
+            inset: 0; 
             background: rgba(0,0,0,0.9); 
-            backdrop-filter: blur(5px);
-            z-index: 999; 
+            backdrop-filter: blur(10px);
+            z-index: 1000; 
         }
 
         #editForm {
@@ -117,147 +150,122 @@
             top: 50%; left: 50%; 
             transform: translate(-50%, -50%);
             background: var(--surface); 
-            width: 1150px; 
-            height: 85vh;
+            width: 1250px; 
+            height: 90vh;
             border-radius: 24px;
-            z-index: 1000; 
+            z-index: 1001; 
             overflow: hidden; 
             flex-direction: column; 
-            box-shadow: 0 0 100px rgba(0,0,0,1);
-            border: 1px solid #3d3d5c;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 0 120px rgba(0,0,0,1);
         }
 
-        .tabs { 
+        .tabs-header { 
             display: flex; 
             background: var(--surface-light); 
-            padding: 15px 25px 0; 
-            gap: 10px;
-            border-bottom: 1px solid #2d2d44;
+            padding: 10px 30px 0; 
+            gap: 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .tab-btn { 
-            padding: 12px 24px; 
+            padding: 16px 24px; 
             border: none; 
             background: transparent; 
             color: var(--text-dim); 
             cursor: pointer; 
-            font-weight: 600; 
+            font-weight: 700; 
             font-size: 13px;
             border-radius: 12px 12px 0 0; 
-            transition: all 0.3s;
+            transition: 0.3s;
         }
-        .tab-btn:hover { color: #fff; }
         .tab-btn.active { 
             background: var(--surface); 
             color: var(--accent); 
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
         }
 
-        .content { padding: 30px; overflow-y: auto; flex-grow: 1; }
-        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .modal-scrollbox { padding: 40px; overflow-y: auto; flex-grow: 1; }
+        .tab-content { display: none; animation: slideUp 0.4s ease forwards; }
         .tab-content.active { display: block; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
 
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .section { 
-            background: rgba(255,255,255,0.03); 
-            padding: 20px; 
-            border-radius: 16px; 
+        /* --- Form Elements --- */
+        .editor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .card-box { 
+            background: rgba(255,255,255,0.02); 
+            padding: 25px; 
+            border-radius: 20px; 
             border: 1px solid rgba(255,255,255,0.05);
         }
-        .section h4 { 
-            margin: 0 0 15px 0; 
+        .card-box h3 { 
+            margin: 0 0 20px 0; 
             color: var(--accent); 
-            font-size: 12px; 
+            font-size: 13px; 
             text-transform: uppercase; 
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        /* Inputs */
-        label { display: block; font-size: 10px; color: var(--text-dim); margin-top: 12px; text-transform: uppercase; font-weight: 600; }
+        label { display: block; font-size: 11px; color: var(--text-dim); margin: 15px 0 6px; text-transform: uppercase; font-weight: 700; }
         input, select, textarea { 
             width: 100%; 
-            padding: 10px 12px; 
-            margin-top: 6px; 
+            padding: 12px 16px; 
             background: var(--bg); 
-            border: 1px solid #2d2d44; 
+            border: 1px solid rgba(255,255,255,0.1); 
             color: #fff; 
-            border-radius: 8px; 
-            box-sizing: border-box; 
-            font-family: inherit;
-            transition: border 0.3s;
-        }
-        input:focus { border-color: var(--accent); outline: none; }
-        input:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        /* Inventory Items */
-        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
-        .item-card { 
-            background: var(--bg); 
-            padding: 15px; 
-            border-radius: 12px; 
-            border: 1px solid #2d2d44;
-            border-left-width: 5px; 
-            position: relative; 
-            transition: transform 0.2s;
-        }
-        .item-card:hover { transform: translateY(-3px); }
-        .item-card.legendary { border-left-color: var(--legendary); box-shadow: 0 0 15px rgba(255,174,0,0.1); }
-        .item-card.epic { border-left-color: var(--epic); }
-        .item-card.rare { border-left-color: var(--rare); }
-        .item-card .name { font-size: 12px; font-weight: 700; display: block; margin-bottom: 4px; }
-        .item-card .count { color: var(--accent); font-family: 'Fira Code', monospace; font-size: 14px; }
-        .del-btn { position: absolute; top: 8px; right: 10px; color: var(--danger); cursor: pointer; opacity: 0.5; transition: 0.2s; }
-        .del-btn:hover { opacity: 1; }
-
-        /* Chat Log */
-        .chat-log { 
-            background: #050508; 
-            padding: 15px; 
-            border-radius: 12px; 
-            font-size: 12px; 
-            height: 350px; 
-            overflow-y: auto; 
-            border: 1px solid #2d2d44; 
-            line-height: 1.5;
-        }
-        .msg { margin-bottom: 12px; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.02); }
-        .msg-u { color: var(--accent); font-weight: bold; }
-        .msg-a { color: #ff80ab; font-weight: bold; }
-
-        /* Footer Buttons */
-        .footer { padding: 20px 30px; background: var(--surface-light); display: flex; justify-content: flex-end; gap: 15px; }
-        .btn { 
-            padding: 12px 28px; 
             border-radius: 10px; 
+            box-sizing: border-box; 
+            font-family: 'Inter', sans-serif;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+
+        /* --- Inventory Styles --- */
+        .inv-wrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .item-tile { 
+            background: var(--bg); 
+            padding: 20px; 
+            border-radius: 15px; 
+            border-left: 5px solid #444; 
+            position: relative;
+        }
+        .item-tile.legendary { border-left-color: var(--legendary); }
+        .item-tile.epic { border-left-color: var(--epic); }
+        .item-tile.rare { border-left-color: var(--rare); }
+        .item-tile .name { display: block; font-weight: 800; margin-bottom: 5px; font-size: 13px; }
+        .item-tile .val { font-family: 'Fira Code'; color: var(--accent); font-size: 16px; }
+
+        /* --- UI Buttons --- */
+        .modal-footer { padding: 25px 40px; background: var(--surface-light); display: flex; justify-content: flex-end; gap: 20px; }
+        .btn { 
+            padding: 14px 30px; 
+            border-radius: 12px; 
             border: none; 
             cursor: pointer; 
-            font-weight: 700; 
-            font-size: 13px;
-            transition: all 0.3s;
+            font-weight: 800; 
+            font-size: 14px;
+            transition: 0.3s;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
-        .btn-save { background: var(--accent); color: #000; box-shadow: 0 4px 15px var(--accent-glow); }
-        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent-glow); }
-        .btn-close { background: #2d2d44; color: #fff; }
-        .btn-close:hover { background: #3d3d5c; }
-        .btn-vip { background: var(--vip); color: #000; }
-        .btn-danger { background: var(--danger); color: #fff; }
-
-        .tag { display: inline-block; background: #2d2d44; padding: 4px 10px; border-radius: 6px; font-size: 11px; margin: 3px; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-save { background: var(--accent); color: #000; }
+        .btn-save:hover { transform: translateY(-3px); box-shadow: 0 10px 20px var(--accent-glow); }
+        .btn-close { background: rgba(255,255,255,0.05); color: #fff; }
         
         #toast {
-            position: fixed; bottom: 30px; right: 30px; background: var(--surface);
-            padding: 15px 25px; border-radius: 12px; border-left: 4px solid var(--accent);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 2000;
-            transform: translateX(150%); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: fixed; bottom: 40px; right: 40px; background: var(--surface-light);
+            padding: 20px 35px; border-radius: 15px; border-left: 5px solid var(--accent);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); z-index: 9999;
+            transform: translateX(200%); transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         }
-        #toast.show { transform: translateX(0); }
+        #toast.visible { transform: translateX(0); }
     </style>
 </head>
 <body>
@@ -265,28 +273,30 @@
 <div class="container">
     <header>
         <div class="logo">
-            <h1>Chronos Master Control <small style="font-size: 12px; color: var(--text-dim); vertical-align: middle; margin-left: 10px;">v2.8.1 Stable</small></h1>
+            <h1>Chronos Master Control</h1>
         </div>
-        <div class="actions">
-            <button class="btn btn-close" onclick="loadUsers()">🔄 Refresh Database</button>
+        <div class="stats-overview">
+            <div class="stat-pill">Users: <span id="count-users">0</span></div>
+            <div class="stat-pill">Online VIP: <span id="count-vips">0</span></div>
+            <button class="btn btn-save" style="padding: 8px 15px; font-size: 12px;" onclick="loadUsers()">🔄 Reload</button>
         </div>
     </header>
 
-    <div class="table-wrapper">
+    <div class="table-card">
         <table id="userTable">
             <thead>
                 <tr>
-                    <th>Telegram ID</th>
-                    <th>User / Alias</th>
-                    <th>Level</th>
-                    <th>Coins</th>
-                    <th>Essence</th>
-                    <th>AI Status</th>
-                    <th>Stats</th>
+                    <th>Identifier</th>
+                    <th>User Profile</th>
+                    <th>Level / XP</th>
+                    <th>Finances</th>
+                    <th>Resources</th>
+                    <th>Nova AI</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody id="userList">
-                <tr><td colspan="7" style="text-align:center; padding: 50px;">Загрузка данных из облака...</td></tr>
+                <tr><td colspan="7" style="text-align:center; padding: 60px; color: var(--text-dim);">Connecting to Database Nexus...</td></tr>
             </tbody>
         </table>
     </div>
@@ -295,436 +305,297 @@
 <div id="overlay" onclick="closeEdit()"></div>
 
 <div id="editForm">
-    <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'main')">📊 Profile</button>
-        <button class="tab-btn" onclick="openTab(event, 'inventory')">🎒 Inventory</button>
-        <button class="tab-btn" onclick="openTab(event, 'privileges')">🛡️ Roles & VIP</button>
-        <button class="tab-btn" onclick="openTab(event, 'nova')">🤖 AI Nova</button>
-        <button class="tab-btn" onclick="openTab(event, 'skills')">⚡ Skills</button>
-        <button class="tab-btn" onclick="openTab(event, 'system')">⚙️ System</button>
+    <div class="tabs-header">
+        <button class="tab-btn active" onclick="openTab(event, 'p-main')">📊 Core Profile</button>
+        <button class="tab-btn" onclick="openTab(event, 'p-assets')">📦 Resources</button>
+        <button class="tab-btn" onclick="openTab(event, 'p-inv')">🎒 Inventory</button>
+        <button class="tab-btn" onclick="openTab(event, 'p-nova')">🤖 Nova AI</button>
+        <button class="tab-btn" onclick="openTab(event, 'p-system')">⚙️ System</button>
     </div>
 
-    <div class="content">
-        <div id="main" class="tab-content active">
-            <div class="grid">
-                <div class="section">
-                    <h4>👤 Identity</h4>
-                    <label>Telegram ID</label><input type="text" id="v-id" disabled>
-                    <label>Username</label><input type="text" id="v-user" placeholder="None">
-                    <label>Exp Level</label>
-                    <div style="display:flex; gap:10px;">
-                        <input type="number" id="v-lvl" title="Level">
-                        <input type="number" id="v-xp" title="XP">
-                    </div>
+    <div class="modal-scrollbox">
+        <div id="p-main" class="tab-content active">
+            <div class="editor-grid">
+                <div class="card-box">
+                    <h3>👤 Identity</h3>
+                    <label>Internal ID</label><input type="text" id="v-id" disabled>
+                    <label>Alias / Username</label><input type="text" id="v-user">
+                    <label>Current Level</label><input type="number" id="v-lvl">
+                    <label>Experience Points (XP/EXP)</label><input type="number" id="v-xp">
                 </div>
-                <div class="section">
-                    <h4>💰 Economics</h4>
+                <div class="card-box">
+                    <h3>💎 Economics</h3>
                     <label>Gold Coins</label><input type="number" id="v-coins">
-                    <label>Dark Essence</label><input type="number" id="v-essence">
-                    <label>Clan Membership</label><input type="text" id="v-clan" placeholder="No Clan">
+                    <label>Void Essence</label><input type="number" id="v-essence">
+                    <label>Clan Association</label><input type="text" id="v-clan">
                 </div>
-                <div class="section">
-                    <h4>📈 Activity</h4>
-                    <label>Messages Sent</label><input type="number" id="v-msgs">
-                    <label>Commands Executed</label><input type="number" id="v-cmds">
-                    <label>Warns Level</label><input type="number" id="v-warns">
-                </div>
-            </div>
-            
-            <div class="grid" style="margin-top: 20px;">
-                <div class="section" style="grid-column: span 2;">
-                    <h4>📦 Resource Storage</h4>
-                    <div id="resGrid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;"></div>
-                </div>
-                <div class="section">
-                    <h4>🏅 Achievements</h4>
-                    <div id="achievementsBox" style="max-height: 150px; overflow-y: auto;"></div>
+                <div class="card-box">
+                    <h3>🛡️ Privileges</h3>
+                    <label>Admin Rights</label>
+                    <select id="v-is-admin">
+                        <option value="false">Standard User</option>
+                        <option value="true">System Administrator</option>
+                    </select>
+                    <label>VIP Subscription</label>
+                    <div id="vip-info" style="font-size: 11px; margin-bottom: 10px;"></div>
+                    <button class="btn btn-save" style="width:100%; justify-content:center;" onclick="grantVip()">Extend VIP +30 Days</button>
+                    <button class="btn btn-close" style="width:100%; margin-top:10px; justify-content:center;" onclick="revokeVip()">Revoke VIP</button>
                 </div>
             </div>
         </div>
 
-        <div id="inventory" class="tab-content">
-            <div class="section" style="margin-bottom:20px; border: 1px solid var(--accent); background: rgba(93, 169, 255, 0.05);">
-                <h4>✨ Item Generator</h4>
+        <div id="p-assets" class="tab-content">
+            <div class="card-box">
+                <h3>📦 Material Storage</h3>
+                <div id="dynamic-res-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 20px;"></div>
+            </div>
+            <div class="card-box" style="margin-top:25px;">
+                <h3>⚡ Active Skills</h3>
+                <div id="dynamic-skills-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 20px;"></div>
+            </div>
+        </div>
+
+        <div id="p-inv" class="tab-content">
+            <div class="card-box" style="margin-bottom:20px; background: rgba(0, 229, 255, 0.05);">
+                <h3>✨ Item Injection</h3>
                 <div style="display:flex; gap:15px;">
-                    <select id="add-item-name" style="flex:2;"></select>
-                    <input type="number" id="add-item-amount" value="1" style="flex:0.5;">
-                    <button class="btn btn-save" onclick="handleAddItem()">Inject Item</button>
+                    <select id="add-item-sel" style="flex:2;"></select>
+                    <input type="number" id="add-item-qty" value="1" style="flex:0.5;">
+                    <button class="btn btn-save" onclick="addItemToInv()">Inject</button>
                 </div>
             </div>
-            <div id="inventoryList" class="inv-grid"></div>
+            <div id="inv-list" class="inv-wrapper"></div>
         </div>
 
-        <div id="privileges" class="tab-content">
-            <div class="grid">
-                <div class="section">
-                    <h4>⭐ VIP Status</h4>
-                    <div id="vipStatus" style="padding: 15px; border-radius: 8px; background: var(--bg); margin-bottom: 15px; text-align: center;">
-                        Checking...
-                    </div>
-                    <label>Extend VIP (Days)</label>
-                    <input type="number" id="vip-days-add" value="30">
-                    <button class="btn btn-vip" onclick="updateVip(true)" style="width: 100%; margin-top: 15px; justify-content: center;">Apply VIP Subscription</button>
-                    <button class="btn btn-close" onclick="updateVip(false)" style="width: 100%; margin-top: 8px; justify-content: center;">Remove VIP</button>
+        <div id="p-nova" class="tab-content">
+            <div class="editor-grid">
+                <div class="card-box">
+                    <h3>🧠 Personality</h3>
+                    <label>Nova Name</label><input type="text" id="ai-name">
+                    <label>Relationship Level</label><input type="number" id="ai-rel">
+                    <label>Gender/Type</label><input type="text" id="ai-gender">
+                    <label>Speech Style</label><textarea id="ai-style" rows="3"></textarea>
                 </div>
-                <div class="section">
-                    <h4>🛡️ Administration</h4>
-                    <div id="adminStatus" style="padding: 15px; border-radius: 8px; background: var(--bg); margin-bottom: 15px; text-align: center;">
-                        Checking...
-                    </div>
-                    <p style="font-size: 11px; color: var(--text-dim);">Administrative rights allow the user to use debug commands and bypass cooldowns.</p>
-                    <button id="toggleAdminBtn" class="btn btn-danger" onclick="toggleAdmin()" style="width: 100%; margin-top: 15px; justify-content: center;">Toggle Admin Rights</button>
+                <div class="card-box" style="grid-column: span 2;">
+                    <h3>🎞️ Recent Memory</h3>
+                    <div id="ai-logs" style="height:350px; background:#000; border-radius:10px; padding:15px; overflow-y:auto; font-family:'Fira Code'; font-size:12px;"></div>
                 </div>
-                <div class="section">
-                    <h4>🚫 Restrictions</h4>
+            </div>
+        </div>
+
+        <div id="p-system" class="tab-content">
+            <div class="editor-grid">
+                <div class="card-box">
+                    <h3>🚫 Access Control</h3>
                     <label>Ban Status</label>
                     <select id="v-banned">
-                        <option value="false">Active (Clear)</option>
-                        <option value="true">Banned (Restricted)</option>
+                        <option value="false">No Restriction</option>
+                        <option value="true">BANNED</option>
                     </select>
-                    <label>Reason</label>
-                    <input type="text" id="v-ban-reason" placeholder="Violation of rules">
+                    <label>Warn Count</label><input type="number" id="v-warns">
                 </div>
-            </div>
-        </div>
-
-        <div id="nova" class="tab-content">
-            <div class="grid">
-                <div class="section">
-                    <h4>🧠 Personality Core</h4>
-                    <label>AI Display Name</label><input type="text" id="ai-name">
-                    <label>Relationship Bond</label><input type="number" step="0.1" id="ai-rel">
-                    <label>Physical Age</label><input type="number" id="ai-age">
-                    <label>Mood State</label><input type="text" id="ai-mood">
-                    <label>Linguistic Style</label><input type="text" id="ai-speech">
-                </div>
-                <div class="section" style="grid-column: span 2;">
-                    <h4>🎞️ Memory Stream</h4>
-                    <div id="aiChat" class="chat-log"></div>
-                    <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                        <div id="aiQuest" style="font-size:11px; color:var(--accent);"></div>
-                        <button class="btn btn-close" style="padding: 5px 10px; font-size: 10px;" onclick="clearAiHistory()">Wipe Memory</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="skills" class="tab-content">
-            <div id="skillsGrid" class="grid"></div>
-        </div>
-
-        <div id="system" class="tab-content">
-            <div class="grid">
-                <div class="section">
-                    <h4>⏳ Active Cooldowns</h4>
-                    <div id="cdBox" style="font-size:11px; display: grid; gap: 8px;"></div>
-                </div>
-                <div class="section">
-                    <h4>🐾 Companion Data</h4>
-                    <div id="petsBox"></div>
-                    <label>Add Pet ID</label>
-                    <div style="display:flex; gap:5px;">
-                        <input type="text" id="new-pet-id">
-                        <button class="btn btn-save" style="padding: 5px 15px;" onclick="addPet()">+</button>
-                    </div>
+                <div class="card-box">
+                    <h3>🕒 Cooldowns</h3>
+                    <div id="cd-list" style="font-size:12px;"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="footer">
-        <button class="btn btn-close" onclick="closeEdit()">Cancel</button>
-        <button class="btn btn-save" onclick="saveData()">💾 Commit Changes to DB</button>
+    <div class="modal-footer">
+        <button class="btn btn-close" onclick="closeEdit()">Discard</button>
+        <button class="btn btn-save" onclick="processSave()">💾 Commit Changes</button>
     </div>
 </div>
 
-<div id="toast">Changes saved successfully!</div>
+<div id="toast">Operation Successful</div>
 
 <script>
-    // --- КОНСТАНТЫ ---
-    const RESOURCES = ["gold", "wood", "stone", "iron", "magic_crystals", "ores", "fabric", "food", "rare_artifacts"];
-    const SKILLS = ["exp_boost", "resource_gain", "luck", "gold_gain", "wisdom", "pet_bonus", "cooldown_reduction"];
-    const ITEMS_DB = [
-        {name: "Talisman of Knowledge", rarity: "common"},
-        {name: "Energy Drink", rarity: "rare"},
-        {name: "Golden Purse", rarity: "epic"},
-        {name: "Philosopher's Stone", rarity: "legendary"},
-        {name: "Timekeeper’s Hourglass", rarity: "legendary"},
-        {name: "Crown of Mastery", rarity: "legendary"}
+    const RES_TYPES = ["gold", "wood", "stone", "iron", "magic_crystals", "ores", "fabric", "food", "rare_artifacts"];
+    const SKILL_TYPES = ["exp_boost", "resource_gain", "luck", "gold_gain", "wisdom", "cooldown_reduction", "pet_bonus"];
+    const ITEMS_MANIFEST = [
+        {id: "tali_know", name: "Talisman of Knowledge", rarity: "rare"},
+        {id: "gold_purse", name: "Golden Purse", rarity: "epic"},
+        {id: "void_star", name: "Void Star", rarity: "legendary"}
     ];
 
-    let allUsers = []; 
-    let currentUser = null;
+    let allUsers = [];
+    let activeUser = null;
 
-    // --- ИНИЦИАЛИЗАЦИЯ ---
-    function init() {
-        const itemSelect = document.getElementById('add-item-name');
-        ITEMS_DB.forEach(i => {
-            let opt = document.createElement('option');
-            opt.value = i.name;
-            opt.innerText = `${i.name} [${i.rarity.toUpperCase()}]`;
-            itemSelect.appendChild(opt);
-        });
-        loadUsers();
-    }
-
-    // --- API: ЗАГРУЗКА ---
+    // --- Init ---
     async function loadUsers() {
         try {
-            const res = await fetch('/api/users');
-            if (!res.ok) throw new Error("Connection failed (401/500)");
-            
-            allUsers = await res.json();
-            const list = document.getElementById('userList');
-            
-            if (allUsers.length === 0) {
-                list.innerHTML = '<tr><td colspan="7" style="text-align:center;">Base is empty</td></tr>';
-                return;
-            }
-
-            list.innerHTML = allUsers.map((u, idx) => `
-                <tr onclick="openEdit(${idx})">
-                    <td class="user-id">#${u._id}</td>
-                    <td>
-                        <span class="username">@${u.username || 'unknown'}</span>
-                        ${u.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
-                        ${u.is_vip ? '<span class="badge badge-vip">VIP</span>' : ''}
-                    </td>
-                    <td>Lvl ${u.level || 0}</td>
-                    <td>${(u.coins || 0).toLocaleString()}</td>
-                    <td>${u.essence || 0}</td>
-                    <td>${u.ai_profile?.name || '---'}</td>
-                    <td><span class="tag">💬 ${u.messages || 0}</span></td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            document.getElementById('userList').innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">${e.message}</td></tr>`;
-        }
+            const r = await fetch('/api/users');
+            allUsers = await r.json();
+            renderTable();
+            updateStats();
+        } catch(e) { console.error("API Error", e); }
     }
 
-    // --- МОДАЛЬНОЕ ОКНО ---
-    function openEdit(index) {
-        currentUser = JSON.parse(JSON.stringify(allUsers[index])); // Клонируем данные
+    function renderTable() {
+        const body = document.getElementById('userList');
+        body.innerHTML = allUsers.map((u, i) => {
+            // Исправление отображения статусов
+            const isAdmin = u.is_admin === true;
+            const isVip = u.is_vip === true || (u.vip_until && new Date(u.vip_until) > new Date());
+            
+            return `
+            <tr onclick="editUser(${i})">
+                <td class="user-id">#${u._id}</td>
+                <td>
+                    <div class="user-cell">
+                        <div class="avatar-stub">${(u.username || 'U').charAt(0).toUpperCase()}</div>
+                        <b>@${u.username || 'NoName'}</b>
+                    </div>
+                </td>
+                <td>Lvl ${u.level || 1} <br><small style="color:var(--text-dim)">XP: ${u.exp || u.xp || 0}</small></td>
+                <td>💰 ${u.coins?.toLocaleString() || 0}</td>
+                <td>📦 ${Object.values(u.resources || {}).reduce((a,b)=>a+b, 0)}</td>
+                <td>${u.ai_profile?.name || 'Nova'}</td>
+                <td>
+                    ${isAdmin ? '<span class="badge badge-admin">Admin</span>' : ''}
+                    ${isVip ? '<span class="badge badge-vip">VIP</span>' : ''}
+                    ${!isAdmin && !isVip ? '<span class="badge" style="background:rgba(255,255,255,0.05)">User</span>' : ''}
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    // --- Modal Logic ---
+    function editUser(index) {
+        activeUser = JSON.parse(JSON.stringify(allUsers[index]));
         
-        // Базовые поля
-        document.getElementById('v-id').value = currentUser._id;
-        document.getElementById('v-user').value = currentUser.username || '';
-        document.getElementById('v-lvl').value = currentUser.level || 1;
-        document.getElementById('v-xp').value = currentUser.xp || currentUser.exp || 0;
-        document.getElementById('v-coins').value = currentUser.coins || 0;
-        document.getElementById('v-essence').value = currentUser.essence || 0;
-        document.getElementById('v-msgs').value = currentUser.messages || 0;
-        document.getElementById('v-cmds').value = currentUser.commands_count || 0;
-        document.getElementById('v-warns').value = currentUser.warns || 0;
-        document.getElementById('v-clan').value = currentUser.clan_id || '';
+        // Основные данные (Фикс XP/EXP)
+        document.getElementById('v-id').value = activeUser._id;
+        document.getElementById('v-user').value = activeUser.username || '';
+        document.getElementById('v-lvl').value = activeUser.level || 1;
+        document.getElementById('v-xp').value = activeUser.exp || activeUser.xp || 0;
+        document.getElementById('v-coins').value = activeUser.coins || 0;
+        document.getElementById('v-essence').value = activeUser.essence || 0;
+        document.getElementById('v-is-admin').value = String(activeUser.is_admin || false);
 
-        // Динамические сетки (Ресурсы и Скиллы)
-        renderResourceGrid();
-        renderSkillGrid();
+        // VIP Статус
+        const vipInfo = document.getElementById('vip-info');
+        if (activeUser.is_vip) {
+            vipInfo.innerHTML = `✅ Active until: ${new Date(activeUser.vip_until).toLocaleDateString()}`;
+        } else {
+            vipInfo.innerHTML = "❌ Inactive";
+        }
 
-        // ИИ
-        const ai = currentUser.ai_profile || {};
-        document.getElementById('ai-name').value = ai.name || '';
-        document.getElementById('ai-rel').value = ai.relationship_level || 0;
-        document.getElementById('ai-age').value = ai.age || 0;
-        document.getElementById('ai-mood').value = ai.mood || '';
-        document.getElementById('ai-speech').value = ai.speech_style || '';
-        document.getElementById('aiQuest').innerText = ai.quest?.meta?.text ? `Active Quest: ${ai.quest.meta.text}` : 'No active quest';
-        
-        document.getElementById('aiChat').innerHTML = (currentUser.ai_history || []).map(m => `
-            <div class="msg"><b class="msg-${m.role === 'user' ? 'u':'a'}">${m.role.toUpperCase()}:</b> ${m.content}</div>
-        `).join('');
-
-        // ВИП и Админ
-        updateStatusLabels();
-
-        // Остальное
-        renderInventory();
-        document.getElementById('achievementsBox').innerHTML = (currentUser.achievements || []).map(a => `<span class="tag">${a}</span>`).join('');
-        document.getElementById('petsBox').innerHTML = (currentUser.pets || []).map(p => `
-            <div class="tag" style="display:flex; justify-content:space-between; align-items:center;">
-                🐾 ${p} <span style="margin-left:8px; cursor:pointer; color:red;" onclick="removePet('${p}')">×</span>
+        // Динамические ресурсы
+        const resGrid = document.getElementById('dynamic-res-grid');
+        resGrid.innerHTML = RES_TYPES.map(rt => `
+            <div>
+                <label>${rt.replace('_',' ')}</label>
+                <input type="number" value="${activeUser.resources?.[rt] || 0}" data-res-key="${rt}">
             </div>
         `).join('');
 
-        // Кулдауны
-        document.getElementById('cdBox').innerHTML = Object.entries(currentUser.cooldowns || {}).map(([k, v]) => {
-            const date = new Date(v?.$date || v);
-            const isExpired = date < new Date();
-            return `
-                <div style="display:flex; justify-content:space-between; color:${isExpired ? '#888' : 'var(--accent)'}">
-                    <span>${k}:</span>
-                    <span>${isNaN(date) ? 'Ready' : date.toLocaleString()}</span>
-                </div>`;
-        }).join('');
+        // Скиллы
+        const skillGrid = document.getElementById('dynamic-skills-grid');
+        skillGrid.innerHTML = SKILL_TYPES.map(st => `
+            <div>
+                <label>${st.replace('_',' ')}</label>
+                <input type="number" value="${activeUser.skills?.[st] || 0}" data-skill-key="${st}">
+            </div>
+        `).join('');
+
+        // AI
+        const ai = activeUser.ai_profile || {};
+        document.getElementById('ai-name').value = ai.name || 'Nova';
+        document.getElementById('ai-rel').value = ai.relationship_level || 0;
+        document.getElementById('ai-gender').value = ai.gender || 'Unknown';
+        document.getElementById('ai-style').value = ai.speech_style || '';
+
+        // Инвентарь
+        renderInv();
 
         document.getElementById('overlay').style.display = 'block';
         document.getElementById('editForm').style.display = 'flex';
     }
 
-    // --- ВСПОМОГАТЕЛЬНЫЕ РЕНДЕРЫ ---
-    function renderResourceGrid() {
-        const grid = document.getElementById('resGrid');
-        grid.innerHTML = RESOURCES.map(r => `
-            <div>
-                <label>${r.replace(/_/g,' ')}</label>
-                <input type="number" value="${currentUser.resources?.[r] || 0}" data-res="${r}">
-            </div>
-        `).join('');
-    }
-
-    function renderSkillGrid() {
-        const grid = document.getElementById('skillsGrid');
-        grid.innerHTML = SKILLS.map(s => `
-            <div class="section">
-                <label>${s.replace(/_/g,' ')}</label>
-                <input type="number" value="${currentUser.skills?.[s] || 0}" data-skill="${s}">
-            </div>
-        `).join('');
-    }
-
-    function renderInventory() {
-        const list = document.getElementById('inventoryList');
-        list.innerHTML = '';
-        const inv = currentUser.inventory || {};
-        for (const [name, data] of Object.entries(inv)) {
-            list.innerHTML += `
-                <div class="item-card ${data.rarity || 'common'}">
-                    <span class="del-btn" onclick="handleRemoveItem('${name}')">✖</span>
-                    <span class="name">${name}</span>
-                    <span class="count">x${data.amount || 0}</span>
-                </div>`;
+    function renderInv() {
+        const box = document.getElementById('inv-list');
+        box.innerHTML = '';
+        const items = activeUser.inventory || {};
+        for(let key in items) {
+            box.innerHTML += `
+                <div class="item-tile ${items[key].rarity || 'common'}">
+                    <span class="name">${key}</span>
+                    <span class="val">x${items[key].amount}</span>
+                    <button onclick="remItem('${key}')" style="position:absolute; top:5px; right:5px; background:none; border:none; color:red; cursor:pointer;">×</button>
+                </div>
+            `;
         }
     }
 
-    function updateStatusLabels() {
-        const vipEl = document.getElementById('vipStatus');
-        const adminEl = document.getElementById('adminStatus');
-        const adminBtn = document.getElementById('toggleAdminBtn');
-
-        if (currentUser.is_vip) {
-            const exp = new Date(currentUser.vip_until);
-            vipEl.innerHTML = `⭐ <b style="color:var(--vip)">VIP ACTIVE</b><br><small>Expires: ${exp.toLocaleDateString()}</small>`;
-        } else {
-            vipEl.innerHTML = "REGULAR USER";
-        }
-
-        if (currentUser.is_admin) {
-            adminEl.innerHTML = `🛡️ <b style="color:var(--danger)">ADMIN ACCESS</b>`;
-            adminBtn.innerText = "Revoke Admin Access";
-        } else {
-            adminEl.innerHTML = "NO ACCESS";
-            adminBtn.innerText = "Grant Admin Access";
-        }
+    function grantVip() {
+        const now = activeUser.vip_until ? new Date(activeUser.vip_until) : new Date();
+        now.setDate(now.getDate() + 30);
+        activeUser.is_vip = true;
+        activeUser.vip_until = now.toISOString();
+        editUser(allUsers.findIndex(u => u._id === activeUser._id));
     }
 
-    // --- ЛОГИКА ДЕЙСТВИЙ ---
-    function handleAddItem() {
-        const name = document.getElementById('add-item-name').value;
-        const amount = parseInt(document.getElementById('add-item-amount').value);
-        const meta = ITEMS_DB.find(i => i.name === name);
-        
-        if (!currentUser.inventory) currentUser.inventory = {};
-        if (currentUser.inventory[name]) currentUser.inventory[name].amount += amount;
-        else currentUser.inventory[name] = { amount, rarity: meta.rarity };
-        renderInventory();
+    function revokeVip() {
+        activeUser.is_vip = false;
+        activeUser.vip_until = null;
+        editUser(allUsers.findIndex(u => u._id === activeUser._id));
     }
 
-    function handleRemoveItem(name) {
-        if(confirm(`Remove ${name}?`)) {
-            delete currentUser.inventory[name];
-            renderInventory();
-        }
-    }
-
-    function updateVip(active) {
-        if (!active) {
-            currentUser.is_vip = false;
-            currentUser.vip_until = null;
-        } else {
-            const days = parseInt(document.getElementById('vip-days-add').value);
-            const date = new Date();
-            date.setDate(date.getDate() + days);
-            currentUser.is_vip = true;
-            currentUser.vip_until = date.toISOString();
-        }
-        updateStatusLabels();
-    }
-
-    function toggleAdmin() {
-        currentUser.is_admin = !currentUser.is_admin;
-        updateStatusLabels();
-    }
-
-    function addPet() {
-        const id = document.getElementById('new-pet-id').value;
-        if (!id) return;
-        if (!currentUser.pets) currentUser.pets = [];
-        currentUser.pets.push(id);
-        openEdit(allUsers.findIndex(u => u._id === currentUser._id)); // Re-render
-    }
-
-    // --- СОХРАНЕНИЕ ---
-    async function saveData() {
-        const updateData = {
+    async function processSave() {
+        const update = {
             username: document.getElementById('v-user').value,
             level: Number(document.getElementById('v-lvl').value),
+            exp: Number(document.getElementById('v-exp').value), // Сохраняем в оба поля для надежности
             xp: Number(document.getElementById('v-xp').value),
             coins: Number(document.getElementById('v-coins').value),
             essence: Number(document.getElementById('v-essence').value),
-            messages: Number(document.getElementById('v-msgs').value),
-            commands_count: Number(document.getElementById('v-cmds').value),
-            warns: Number(document.getElementById('v-warns').value),
-            clan_id: document.getElementById('v-clan').value,
-            inventory: currentUser.inventory,
-            is_vip: currentUser.is_vip,
-            vip_until: currentUser.vip_until,
-            is_admin: currentUser.is_admin,
-            pets: currentUser.pets,
-            // Вложенные поля ИИ
+            is_admin: document.getElementById('v-is-admin').value === 'true',
+            is_vip: activeUser.is_vip,
+            vip_until: activeUser.vip_until,
+            inventory: activeUser.inventory,
             "ai_profile.name": document.getElementById('ai-name').value,
             "ai_profile.relationship_level": Number(document.getElementById('ai-rel').value),
-            "ai_profile.age": Number(document.getElementById('ai-age').value),
-            "ai_profile.mood": document.getElementById('ai-mood').value,
-            "ai_profile.speech_style": document.getElementById('ai-speech').value,
+            "ai_profile.gender": document.getElementById('ai-gender').value,
+            "ai_profile.speech_style": document.getElementById('ai-style').value
         };
 
-        // Собираем ресурсы и скиллы
-        document.querySelectorAll('[data-res]').forEach(i => updateData[`resources.${i.dataset.res}`] = Number(i.value));
-        document.querySelectorAll('[data-skill]').forEach(i => updateData[`skills.${i.dataset.skill}`] = Number(i.value));
+        // Собираем ресурсы
+        document.querySelectorAll('[data-res-key]').forEach(el => {
+            update[`resources.${el.dataset.resKey}`] = Number(el.value);
+        });
 
-        try {
-            const res = await fetch('/api/update', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ user_id: currentUser._id, updateData })
-            });
+        // Собираем скиллы
+        document.querySelectorAll('[data-skill-key]').forEach(el => {
+            update[`skills.${el.dataset.skillKey}`] = Number(el.value);
+        });
 
-            if (res.ok) {
-                showToast("Database updated successfully!");
-                closeEdit();
-                loadUsers();
-            } else {
-                const err = await res.json();
-                alert("Update failed: " + err.error);
-            }
-        } catch (e) {
-            alert("Network error: " + e.message);
+        const res = await fetch('/api/update', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ user_id: activeUser._id, updateData: update })
+        });
+
+        if(res.ok) {
+            showToast("Sync Complete");
+            closeEdit();
+            loadUsers();
         }
     }
 
-    function showToast(text) {
+    function showToast(m) {
         const t = document.getElementById('toast');
-        t.innerText = text;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3000);
+        t.innerText = m;
+        t.classList.add('visible');
+        setTimeout(() => t.classList.remove('visible'), 3000);
     }
 
-    function openTab(evt, name) {
+    function openTab(e, id) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(name).classList.add('active');
-        evt.currentTarget.classList.add('active');
+        document.getElementById(id).classList.add('active');
+        e.currentTarget.classList.add('active');
     }
 
     function closeEdit() {
@@ -732,8 +603,12 @@
         document.getElementById('editForm').style.display = 'none';
     }
 
-    // Запуск
-    init();
+    function updateStats() {
+        document.getElementById('count-users').innerText = allUsers.length;
+        document.getElementById('count-vips').innerText = allUsers.filter(u => u.is_vip).length;
+    }
+
+    loadUsers();
 </script>
 </body>
 </html>
