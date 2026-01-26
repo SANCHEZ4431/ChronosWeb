@@ -107,16 +107,6 @@ app.get('/api/users', checkAuth, async (req, res) => {
   }
 });
 
-app.get('/api/users', checkAuth, async (req, res) => {
-  try {
-    const users = await db.collection('users').find({}).toArray();
-    // Отправляем всё "как есть", чтобы фронт видел полную структуру
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.post('/api/update', checkAuth, async (req, res) => {
   try {
     const { user_id, updateData } = req.body;
