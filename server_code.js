@@ -2,27 +2,30 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const User = require('./models/data');
+const axios = require('axios'); // Нужно установить: npm install axios
+const User = require('./data');
 
 const app = express();
+const port = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
 mongoose.connect(process.env.MONGO_URI).then(() => console.log('✅ DB Connected'));
 
-// Получение списка
+// --- API ДАННЫХ ---
 app.get('/api/users', async (req, res) => {
   try {
     const users = await User.find({}).sort({ level: -1 });
     const formatted = users.map(u => ({
       user_id: u._id,
       username: u.username || 'n/a',
-      level: u.level,
-      exp: u.exp,
-      coins: u.coins,
-      essence: u.essence,
-      warns: u.warns,
+      level: u.level || 1,
+      exp: u.exp || 0,
+      coins: u.coins || 0,
+      essence: u.essence || 0,
+      warns: u.warns || 0,
       wisdom: u.skills?.wisdom || 0,
       ai_name: u.ai_profile?.name || 'Hikari'
     }));
@@ -30,7 +33,6 @@ app.get('/api/users', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Редактирование данных
 app.post('/api/update', async (req, res) => {
   const { user_id, coins, essence, level, exp, warns } = req.body;
   try {
@@ -39,7 +41,7 @@ app.post('/api/update', async (req, res) => {
         coins: parseInt(coins), 
         essence: parseInt(essence), 
         level: parseInt(level),
-        exp: parseInt(exp), 
+        exp: parseInt(exp),
         warns: parseInt(warns)
       }
     });
@@ -47,4 +49,25 @@ app.post('/api/update', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.listen(process.env.PORT || 3000, () => console.log('🚀 Server running'));
+// --- ФУНКЦИЯ "АНТИ-СОН" (KEEP ALIVE) ---
+const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL; // Render сам подставляет эту переменную
+
+function keepAlive() {
+  if (!RENDER_EXTERNAL_URL) {
+    console.log("⚠️ RENDER_EXTERNAL_URL не найден, самопрозвон отключен.");
+    return;
+  }
+  setInterval(async () => {
+    try {
+      await axios.get(RENDER_EXTERNAL_URL);
+      console.log(`📡 Ping successful: ${RENDER_EXTERNAL_URL}`);
+    } catch (e) {
+      console.error("❌ Ping failed:", e.message);
+    }
+  }, 10 * 60 * 1000); // Пинг каждые 10 минут
+}
+
+app.listen(port, () => {
+  console.log(`🚀 Server running on port ${port}`);
+  keepAlive(); // Запускаем цикл пинга при старте сервера
+});
