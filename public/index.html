@@ -2,103 +2,81 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Master Control</title>
+    <title>Chronos Master Control v2.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f0f1a;
-            --surface: #1a1a2e;
-            --accent: #5da9ff;
-            --text: #e0e0e0;
-            --legendary: #ff8000;
-            --epic: #a335ee;
-            --rare: #0070dd;
-            --common: #ffffff;
-            --danger: #ff4d4d;
+            --bg: #0b0b14; --surface: #161625; --accent: #5da9ff; --text: #e0e0e0;
+            --legendary: #ffae00; --epic: #bf40bf; --rare: #0070dd; --common: #ffffff;
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0; padding: 20px;
-        }
-
-        .container { max-width: 1200px; margin: 0 auto; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 1300px; margin: 0 auto; }
         
-        /* Таблица */
-        table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; margin-top: 20px; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #2d2d44; }
-        th { background: #252545; color: var(--accent); text-transform: uppercase; font-size: 12px; }
-        tr:hover { background: #252545; cursor: pointer; }
+        /* Таблица игроков */
+        table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #2d2d44; }
+        th { background: #1f1f35; color: var(--accent); font-size: 11px; text-transform: uppercase; }
+        tr:hover { background: #1f1f35; cursor: pointer; }
 
-        /* Модалка */
-        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; }
+        /* Модальное окно */
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; }
         #editForm {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: var(--surface); width: 950px; max-height: 90vh; border-radius: 20px;
-            box-shadow: 0 0 40px rgba(0,0,0,0.5); z-index: 1000; overflow: hidden; flex-direction: column;
+            background: var(--surface); width: 1100px; max-height: 95vh; border-radius: 20px;
+            z-index: 1000; overflow: hidden; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,1);
         }
 
-        /* Табы */
-        .tabs { display: flex; background: #252545; padding: 10px 20px 0; gap: 10px; }
-        .tab-btn {
-            padding: 12px 20px; border: none; background: none; color: #888;
-            cursor: pointer; border-radius: 8px 8px 0 0; font-weight: 600;
-        }
+        .tabs { display: flex; background: #1f1f35; padding: 10px 20px 0; gap: 5px; }
+        .tab-btn { padding: 12px 20px; border: none; background: none; color: #888; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; }
         .tab-btn.active { background: var(--surface); color: var(--accent); }
 
         .content { padding: 25px; overflow-y: auto; flex-grow: 1; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Сетки */
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .section { background: #252545; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
-        .section h4 { margin-top: 0; color: var(--accent); border-bottom: 1px solid #3d3d5c; padding-bottom: 10px; margin-bottom: 15px; }
-        
-        label { display: block; font-size: 11px; color: #888; margin-top: 10px; text-transform: uppercase; }
-        input, select {
-            width: 100%; padding: 10px; margin-top: 5px; background: #0f0f1a;
-            border: 1px solid #3d3d5c; color: #fff; border-radius: 6px; box-sizing: border-box;
-        }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .section { background: #1f1f35; padding: 15px; border-radius: 12px; }
+        .section h4 { margin: 0 0 10px 0; color: var(--accent); font-size: 13px; text-transform: uppercase; border-bottom: 1px solid #2d2d44; padding-bottom: 5px; }
+
+        label { display: block; font-size: 10px; color: #888; margin-top: 8px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 8px; margin-top: 4px; background: #0b0b14; border: 1px solid #2d2d44; color: #fff; border-radius: 5px; box-sizing: border-box; }
 
         /* Инвентарь */
-        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 15px; }
-        .item-card {
-            background: #0f0f1a; padding: 12px; border-radius: 8px; border-left: 4px solid #fff;
-            position: relative;
-        }
-        .item-card.legendary { border-color: var(--legendary); }
+        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+        .item-card { background: #0b0b14; padding: 10px; border-radius: 8px; border-left: 4px solid #fff; position: relative; }
+        .item-card.legendary { border-color: var(--legendary); box-shadow: inset 0 0 10px rgba(255,174,0,0.1); }
         .item-card.epic { border-color: var(--epic); }
         .item-card.rare { border-color: var(--rare); }
-        .item-card .name { font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; }
-        .item-card .count { color: var(--accent); font-size: 14px; }
-        .del-btn { position: absolute; top: 5px; right: 8px; color: var(--danger); cursor: pointer; font-weight: bold; }
+        .item-card .name { font-size: 12px; font-weight: bold; display: block; }
+        .item-card .count { color: var(--accent); font-size: 13px; }
+        .del-btn { position: absolute; top: 5px; right: 8px; color: #ff4d4d; cursor: pointer; }
 
-        .chat-log { background: #0f0f1a; padding: 10px; border-radius: 8px; font-size: 12px; max-height: 200px; overflow-y: auto; }
-        .tag { display: inline-block; background: #3d3d5c; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin: 2px; }
+        .chat-log { background: #0b0b14; padding: 10px; border-radius: 8px; font-size: 12px; max-height: 250px; overflow-y: auto; border: 1px solid #2d2d44; }
+        .msg { margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px dotted #2d2d44; }
+        .msg-u { color: var(--accent); }
+        .msg-a { color: #ff80ab; }
 
-        .footer { padding: 20px; background: #252545; display: flex; gap: 15px; justify-content: flex-end; }
-        .btn { padding: 12px 25px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-save { background: var(--accent); color: white; }
-        .btn-close { background: #444; color: white; }
+        .tag { display: inline-block; background: #2d2d44; padding: 3px 8px; border-radius: 4px; font-size: 10px; margin: 2px; border: 1px solid #3d3d5c; }
+        .footer { padding: 15px 25px; background: #1f1f35; display: flex; justify-content: flex-end; gap: 10px; }
+        .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-save { background: var(--accent); color: #000; }
+        .btn-close { background: #3d3d5c; color: #fff; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Chronos Master Control</h1>
+    <h1 style="color: var(--accent);">Chronos Master Control <small style="font-size: 12px; color: #666;">v2.0 Database Sync</small></h1>
     <table id="userTable">
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Username</th>
                 <th>Level</th>
                 <th>Coins</th>
                 <th>Essence</th>
-                <th>AI Name</th>
-                <th>Warns</th>
+                <th>AI Nova</th>
+                <th>Messages</th>
             </tr>
         </thead>
         <tbody id="userList"></tbody>
@@ -109,93 +87,107 @@
 
 <div id="editForm">
     <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'main')">📊 Общее</button>
-        <button class="tab-btn" onclick="openTab(event, 'inventory')">🎒 Инвентарь</button>
-        <button class="tab-btn" onclick="openTab(event, 'nova')">🤖 Nova AI</button>
-        <button class="tab-btn" onclick="openTab(event, 'skills')">⚡ Навыки</button>
+        <button class="tab-btn active" onclick="openTab(event, 'main')">📊 PROFILE</button>
+        <button class="tab-btn" onclick="openTab(event, 'inventory')">🎒 INVENTORY</button>
+        <button class="tab-btn" onclick="openTab(event, 'nova')">🤖 NOVA AI</button>
+        <button class="tab-btn" onclick="openTab(event, 'skills')">⚡ SKILLS</button>
+        <button class="tab-btn" onclick="openTab(event, 'system')">⚙️ SYSTEM</button>
     </div>
 
     <div class="content">
         <div id="main" class="tab-content active">
             <div class="grid">
                 <div class="section">
-                    <h4>Базовые параметры</h4>
-                    <input type="hidden" id="editId">
-                    <label>Никнейм</label><input type="text" id="inpUser">
-                    <label>Уровень / Сообщения</label>
-                    <div style="display:flex; gap:10px;">
-                        <input type="number" id="inpLvl">
-                        <input type="number" id="inpMsgs">
+                    <h4>Basic Data</h4>
+                    <label>Telegram ID</label><input type="text" id="v-id" disabled>
+                    <label>Username</label><input type="text" id="v-user">
+                    <label>Level / XP</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="v-lvl">
+                        <input type="number" id="v-xp">
                     </div>
-                    <label>Валюта (Coins / Essence)</label>
-                    <div style="display:flex; gap:10px;">
-                        <input type="number" id="inpCoins">
-                        <input type="number" id="inpEssence">
+                    <label>Currency (Coins / Essence)</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="v-coins">
+                        <input type="number" id="v-essence">
                     </div>
                 </div>
                 <div class="section">
-                    <h4>Склад ресурсов</h4>
-                    <div id="resGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                        </div>
+                    <h4>Resource Warehouse</h4>
+                    <div id="resGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;"></div>
                 </div>
                 <div class="section">
-                    <h4>Системное</h4>
-                    <label>Clan ID</label><input type="text" id="inpClan">
-                    <label>Варны</label><input type="number" id="inpWarns">
-                    <label>Команд</label><input type="number" id="inpCmds">
+                    <h4>Status & Activity</h4>
+                    <label>Messages Total</label><input type="number" id="v-msgs">
+                    <label>Commands Count</label><input type="number" id="v-cmds">
+                    <label>Warnings</label><input type="number" id="v-warns">
+                    <label>Clan ID</label><input type="text" id="v-clan">
                 </div>
             </div>
-            <h4>🏆 Достижения</h4>
-            <div id="achievementsContainer"></div>
+            <h4 style="margin-top:20px;">🏆 Achievements</h4>
+            <div id="achievementsBox"></div>
         </div>
 
         <div id="inventory" class="tab-content">
-            <div class="section" style="background: #252545; border: 1px solid var(--accent);">
-                <h4>🎁 Выдать предмет</h4>
+            <div class="section" style="margin-bottom:15px; border: 1px solid var(--accent);">
+                <h4>Give Item</h4>
                 <div style="display:flex; gap:10px;">
-                    <select id="addItemSelect" style="flex:2;"></select>
-                    <input type="number" id="addItemCount" value="1" style="flex:0.5;">
-                    <button class="btn btn-save" onclick="addItemToUser()" style="padding:0 20px;">Добавить</button>
+                    <select id="add-item-name" style="flex:2;"></select>
+                    <input type="number" id="add-item-amount" value="1" style="flex:0.5;">
+                    <button class="btn btn-save" onclick="handleAddItem()">Add to Bag</button>
                 </div>
             </div>
-            <h4>🎒 Предметы игрока</h4>
             <div id="inventoryList" class="inv-grid"></div>
         </div>
 
         <div id="nova" class="tab-content">
             <div class="grid">
                 <div class="section">
-                    <h4>Профиль Новы</h4>
-                    <label>Имя</label><input type="text" id="aiName">
-                    <label>Возраст</label><input type="number" id="aiAge">
-                    <label>Отношения</label><input type="number" step="0.1" id="aiRel">
-                    <label>Стиль речи</label><input type="text" id="aiStyle">
+                    <h4>AI Personality</h4>
+                    <label>Name</label><input type="text" id="ai-name">
+                    <label>Relationship Level</label><input type="number" step="0.1" id="ai-rel">
+                    <label>Age</label><input type="number" id="ai-age">
+                    <label>Gender</label><input type="text" id="ai-gender">
+                    <label>Mood Style</label><input type="text" id="ai-mood">
+                    <label>Speech Style</label><input type="text" id="ai-speech">
                 </div>
                 <div class="section" style="grid-column: span 2;">
-                    <h4>Лог диалога</h4>
+                    <h4>Memory & Chat Log</h4>
                     <div id="aiChat" class="chat-log"></div>
-                    <h4 style="margin-top:15px;">Текущий квест</h4>
-                    <div id="aiQuest" class="section" style="background:#0f0f1a; margin-bottom:0;"></div>
+                    <label>Current AI Quest</label>
+                    <div id="aiQuest" style="background:#0b0b14; padding:10px; border-radius:5px; border: 1px solid #2d2d44; font-size:12px; color:var(--accent);"></div>
                 </div>
             </div>
         </div>
 
         <div id="skills" class="tab-content">
-            <h4>Прокачка навыков</h4>
             <div id="skillsGrid" class="grid"></div>
+        </div>
+
+        <div id="system" class="tab-content">
+            <div class="grid">
+                <div class="section">
+                    <h4>Cooldowns</h4>
+                    <div id="cdBox" style="font-size:11px;"></div>
+                </div>
+                <div class="section">
+                    <h4>Pets</h4>
+                    <div id="petsBox"></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="footer">
-        <button class="btn btn-close" onclick="closeEdit()">Отмена</button>
-        <button class="btn btn-save" onclick="saveData()">💾 Сохранить изменения</button>
+        <button class="btn btn-close" onclick="closeEdit()">Cancel</button>
+        <button class="btn btn-save" onclick="saveData()">💾 UPDATE DATABASE</button>
     </div>
 </div>
 
 <script>
-    // КОНСТАНТЫ
-    const AVAILABLE_RESOURCES = ["wood", "stone", "iron", "gold", "food", "magic_crystals", "ores", "fabric", "rare_artifacts"];
-    const AVAILABLE_ITEMS = [
+    const RESOURCES = ["gold", "wood", "stone", "iron", "magic_crystals", "ores", "fabric", "food", "rare_artifacts"];
+    const SKILLS = ["exp_boost", "resource_gain", "cooldown_reduction", "pet_bonus", "luck", "blessing_power", "gold_gain", "expedition_speed", "artifact_luck", "wisdom"];
+    const ITEMS_DB = [
         {"name": "Talisman of Knowledge", "rarity": "common"}, {"name": "Coin Bank", "rarity": "common"},
         {"name": "Traveler’s Compass", "rarity": "common"}, {"name": "Wooden Ring", "rarity": "common"},
         {"name": "Lucky Charm", "rarity": "common"}, {"name": "Energy Drink", "rarity": "rare"},
@@ -210,158 +202,167 @@
 
     let currentUser = null;
 
-    // Инициализация выпадающего списка
-    const select = document.getElementById('addItemSelect');
-    AVAILABLE_ITEMS.forEach(i => {
+    // Инициализация магазина
+    const itemSelect = document.getElementById('add-item-name');
+    ITEMS_DB.forEach(i => {
         let opt = document.createElement('option');
         opt.value = i.name;
-        opt.innerText = `${i.name} (${i.rarity})`;
-        select.appendChild(opt);
+        opt.innerText = `${i.name} [${i.rarity}]`;
+        itemSelect.appendChild(opt);
     });
 
     async function loadUsers() {
-        try {
-            const res = await fetch('/api/users');
-            const users = await res.json();
-            const list = document.getElementById('userList');
-            list.innerHTML = users.map(u => `
-                <tr onclick='openEdit(${JSON.stringify(u).replace(/'/g, "&apos;")})'>
-                    <td><b>@${u.username}</b></td>
-                    <td>Lvl ${u.level}</td>
-                    <td>${u.coins.toLocaleString()}</td>
-                    <td>${u.essence}</td>
-                    <td>${u.ai_profile?.name || 'Nova'}</td>
-                    <td>${u.warns}</td>
-                </tr>
-            `).join('');
-        } catch(e) { console.error("Load error:", e); }
+        const res = await fetch('/api/users');
+        const users = await res.json();
+        const list = document.getElementById('userList');
+        list.innerHTML = users.map(u => {
+            const id = u._id?.$numberLong || u._id;
+            return `
+            <tr onclick='openEdit(${JSON.stringify(u).replace(/'/g, "&apos;")})'>
+                <td><code>${id}</code></td>
+                <td><b>@${u.username}</b></td>
+                <td>Lvl ${u.level}</td>
+                <td>${u.coins?.toLocaleString()}</td>
+                <td>${u.essence}</td>
+                <td>${u.ai_profile?.name || '---'}</td>
+                <td>${u.messages || 0}</td>
+            </tr>`;
+        }).join('');
     }
 
     function openEdit(u) {
-        currentUser = JSON.parse(JSON.stringify(u)); // Глубокая копия
-        document.getElementById('editId').value = u._id;
-        document.getElementById('inpUser').value = u.username;
-        document.getElementById('inpLvl').value = u.level;
-        document.getElementById('inpMsgs').value = u.messages || 0;
-        document.getElementById('inpCoins').value = u.coins;
-        document.getElementById('inpEssence').value = u.essence;
-        document.getElementById('inpClan').value = u.clan_id || '';
-        document.getElementById('inpCmds').value = u.commands_count || 0;
-        document.getElementById('inpWarns').value = u.warns || 0;
+        currentUser = JSON.parse(JSON.stringify(u));
+        const id = u._id?.$numberLong || u._id;
+        
+        document.getElementById('v-id').value = id;
+        document.getElementById('v-user').value = u.username || '';
+        document.getElementById('v-lvl').value = u.level || 1;
+        document.getElementById('v-xp').value = u.xp || 0;
+        document.getElementById('v-coins').value = u.coins || 0;
+        document.getElementById('v-essence').value = u.essence || 0;
+        document.getElementById('v-msgs').value = u.messages || 0;
+        document.getElementById('v-cmds').value = u.commands_count || 0;
+        document.getElementById('v-warns').value = u.warns || 0;
+        document.getElementById('v-clan').value = u.clan_id || '';
 
         // Ресурсы
         const resGrid = document.getElementById('resGrid');
-        resGrid.innerHTML = AVAILABLE_RESOURCES.map(r => `
+        resGrid.innerHTML = RESOURCES.map(r => `
             <div>
                 <label>${r.replace('_',' ')}</label>
-                <input type="number" id="res_${r}" value="${u.resources?.[r] || 0}" data-res-key="${r}">
+                <input type="number" value="${u.resources?.[r] || 0}" data-res="${r}">
             </div>
         `).join('');
 
-        renderInventory();
-
-        // AI
-        const ai = u.ai_profile || {};
-        document.getElementById('aiName').value = ai.name || '';
-        document.getElementById('aiAge').value = ai.age || '';
-        document.getElementById('aiRel').value = ai.relationship_level || 0;
-        document.getElementById('aiStyle').value = ai.speech_style || '';
-        document.getElementById('aiChat').innerHTML = u.ai_history?.map(m => `
-            <div class="msg"><b>${m.role}:</b> ${m.content}</div>
-        `).join('') || 'История пуста';
-        document.getElementById('aiQuest').innerText = ai.quest?.meta?.text || 'Нет квеста';
-
-        // Навыки
-        const skGrid = document.getElementById('skillsGrid');
-        skGrid.innerHTML = Object.entries(u.skills || {}).map(([s, v]) => `
-            <div><label>${s}</label><input type="number" value="${v}" data-skill="${s}"></div>
+        // Скиллы
+        const skillGrid = document.getElementById('skillsGrid');
+        skillGrid.innerHTML = SKILLS.map(s => `
+            <div class="section">
+                <label>${s.replace('_',' ')}</label>
+                <input type="number" value="${u.skills?.[s] || 0}" data-skill="${s}">
+            </div>
         `).join('');
 
-        // Ачивки
-        document.getElementById('achievementsContainer').innerHTML = (u.achievements || []).map(a => `<span class="tag">${a}</span>`).join('');
+        // ИИ
+        const ai = u.ai_profile || {};
+        document.getElementById('ai-name').value = ai.name || '';
+        document.getElementById('ai-rel').value = ai.relationship_level || 0;
+        document.getElementById('ai-age').value = ai.age || 0;
+        document.getElementById('ai-gender').value = ai.gender || '';
+        document.getElementById('ai-mood').value = ai.mood || '';
+        document.getElementById('ai-speech').value = ai.speech_style || '';
+        document.getElementById('aiQuest').innerText = ai.quest?.meta?.text || 'No active quest';
+        
+        document.getElementById('aiChat').innerHTML = (u.ai_history || []).map(m => `
+            <div class="msg"><b class="msg-${m.role === 'user' ? 'u':'a'}">${m.role.toUpperCase()}:</b> ${m.content}</div>
+        `).join('');
+
+        // Инвентарь, Ачивки, Питомцы
+        renderInventory();
+        document.getElementById('achievementsBox').innerHTML = (u.achievements || []).map(a => `<span class="tag">${a}</span>`).join('');
+        document.getElementById('petsBox').innerHTML = (u.pets || []).map(p => `<span class="tag" style="border-color:var(--accent)">🐾 ${p}</span>`).join('');
+
+        // Кулдауны
+        document.getElementById('cdBox').innerHTML = Object.entries(u.cooldowns || {}).map(([k, v]) => {
+            const date = v.$date ? new Date(v.$date) : new Date(v);
+            return `<div style="margin-bottom:4px;">⏱ <b>${k}:</b> ${date.toLocaleString()}</div>`;
+        }).join('');
 
         document.getElementById('overlay').style.display = 'block';
         document.getElementById('editForm').style.display = 'flex';
     }
 
     function renderInventory() {
-        const invList = document.getElementById('inventoryList');
-        invList.innerHTML = '';
+        const list = document.getElementById('inventoryList');
+        list.innerHTML = '';
         for (const [name, data] of Object.entries(currentUser.inventory || {})) {
-            if (typeof data === 'object') {
-                invList.innerHTML += `
-                    <div class="item-card ${data.rarity}">
-                        <span class="del-btn" onclick="removeItem('${name}')">×</span>
-                        <span class="name">${name}</span>
-                        <span class="count">x${data.amount}</span>
-                    </div>`;
+            if (typeof data === 'object' && data.rarity) {
+                list.innerHTML += `
+                <div class="item-card ${data.rarity}">
+                    <span class="del-btn" onclick="handleRemoveItem('${name}')">✖</span>
+                    <span class="name">${name}</span>
+                    <span class="count">x${data.amount}</span>
+                </div>`;
             }
         }
     }
 
-    function addItemToUser() {
-        const name = document.getElementById('addItemSelect').value;
-        const count = parseInt(document.getElementById('addItemCount').value);
-        const info = AVAILABLE_ITEMS.find(i => i.name === name);
-
+    function handleAddItem() {
+        const name = document.getElementById('add-item-name').value;
+        const amount = parseInt(document.getElementById('add-item-amount').value);
+        const meta = ITEMS_DB.find(i => i.name === name);
+        
         if (!currentUser.inventory) currentUser.inventory = {};
         if (currentUser.inventory[name]) {
-            currentUser.inventory[name].amount += count;
+            currentUser.inventory[name].amount += amount;
         } else {
-            currentUser.inventory[name] = { amount: count, rarity: info.rarity };
+            currentUser.inventory[name] = { amount: amount, rarity: meta.rarity };
         }
         renderInventory();
     }
 
-    function removeItem(name) {
+    function handleRemoveItem(name) {
         delete currentUser.inventory[name];
         renderInventory();
     }
 
     async function saveData() {
-        const updateData = {
-            "username": document.getElementById('inpUser').value,
-            "level": Number(document.getElementById('inpLvl').value),
-            "coins": Number(document.getElementById('inpCoins').value),
-            "essence": Number(document.getElementById('inpEssence').value),
-            "warns": Number(document.getElementById('inpWarns').value),
-            "clan_id": document.getElementById('inpClan').value,
-            "inventory": currentUser.inventory,
-            "ai_profile.name": document.getElementById('aiName').value,
-            "ai_profile.relationship_level": Number(document.getElementById('aiRel').value),
-            "ai_profile.speech_style": document.getElementById('aiStyle').value,
-            "ai_profile.age": Number(document.getElementById('aiAge').value)
+        const update = {
+            username: document.getElementById('v-user').value,
+            level: Number(document.getElementById('v-lvl').value),
+            xp: Number(document.getElementById('v-xp').value),
+            coins: Number(document.getElementById('v-coins').value),
+            essence: Number(document.getElementById('v-essence').value),
+            messages: Number(document.getElementById('v-msgs').value),
+            commands_count: Number(document.getElementById('v-cmds').value),
+            warns: Number(document.getElementById('v-warns').value),
+            clan_id: document.getElementById('v-clan').value,
+            inventory: currentUser.inventory,
+            "ai_profile.name": document.getElementById('ai-name').value,
+            "ai_profile.relationship_level": Number(document.getElementById('ai-rel').value),
+            "ai_profile.age": Number(document.getElementById('ai-age').value),
+            "ai_profile.gender": document.getElementById('ai-gender').value,
+            "ai_profile.mood": document.getElementById('ai-mood').value,
+            "ai_profile.speech_style": document.getElementById('ai-speech').value,
         };
 
-        // Собираем ресурсы динамически
-        document.querySelectorAll('[data-res-key]').forEach(input => {
-            updateData[`resources.${input.dataset.resKey}`] = Number(input.value);
-        });
-
-        // Собираем навыки
-        document.querySelectorAll('[data-skill]').forEach(input => {
-            updateData[`skills.${input.dataset.skill}`] = Number(input.value);
-        });
+        document.querySelectorAll('[data-res]').forEach(i => update[`resources.${i.dataset.res}`] = Number(i.value));
+        document.querySelectorAll('[data-skill]').forEach(i => update[`skills.${i.dataset.skill}`] = Number(i.value));
 
         const res = await fetch('/api/update', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ user_id: currentUser._id, updateData })
+            body: JSON.stringify({ user_id: currentUser._id, updateData: update })
         });
 
-        if (res.ok) {
-            closeEdit();
-            loadUsers();
-        } else { alert("Ошибка при сохранении!"); }
+        if (res.ok) { closeEdit(); loadUsers(); }
     }
 
-    function openTab(evt, tabName) {
-        const contents = document.getElementsByClassName("tab-content");
-        for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
-        const btns = document.getElementsByClassName("tab-btn");
-        for (let i = 0; i < btns.length; i++) btns[i].classList.remove("active");
-        document.getElementById(tabName).classList.add("active");
-        evt.currentTarget.classList.add("active");
+    function openTab(evt, name) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(name).classList.add('active');
+        evt.currentTarget.classList.add('active');
     }
 
     function closeEdit() {
@@ -371,6 +372,5 @@
 
     loadUsers();
 </script>
-
 </body>
 </html>
