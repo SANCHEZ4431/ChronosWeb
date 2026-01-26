@@ -261,6 +261,128 @@
             transform: translateX(200%); transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         }
         #toast.visible { transform: translateX(0); }
+
+        /* ================= MOBILE ADAPTATION ================= */
+        @media (max-width: 900px) {
+        
+            .container {
+                padding: 15px 10px;
+            }
+        
+            header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        
+            .stats-overview {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        
+            .search-bar {
+                flex-direction: column !important;
+            }
+        
+            .search-bar input {
+                height: 45px !important;
+                font-size: 14px;
+            }
+        
+            /* ==== TABLE -> CARDS ==== */
+            table, thead, tbody, th, tr {
+                display: block;
+                width: 100%;
+            }
+        
+            thead {
+                display: none;
+            }
+        
+            tr {
+                background: var(--surface);
+                border-radius: 16px;
+                margin-bottom: 15px;
+                padding: 10px;
+                border: 1px solid rgba(255,255,255,0.05);
+            }
+        
+            td {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 10px;
+                font-size: 13px;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+            }
+        
+            td:last-child {
+                border-bottom: none;
+            }
+        
+            td::before {
+                content: attr(data-label);
+                color: var(--text-dim);
+                font-size: 11px;
+                text-transform: uppercase;
+            }
+        
+            /* ==== MODAL ==== */
+            #editForm {
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+                top: 0;
+                left: 0;
+                transform: none;
+            }
+        
+            .tabs-header {
+                overflow-x: auto;
+                padding: 5px;
+            }
+        
+            .tab-btn {
+                padding: 12px 14px;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+        
+            .modal-scrollbox {
+                padding: 15px;
+            }
+        
+            .editor-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        
+            #dynamic-res-grid,
+            #dynamic-skills-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+            }
+        
+            .inv-wrapper {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        
+            .modal-footer {
+                padding: 15px;
+                flex-direction: column;
+            }
+        
+            .btn {
+                width: 100%;
+            }
+        
+            #toast {
+                right: 10px;
+                left: 10px;
+                bottom: 15px;
+                text-align: center;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -492,18 +614,18 @@
             
             return `
             <tr onclick="editUser(${originalIndex})">
-                <td class="user-id">#${u._id}</td>
-                <td>
+                <td data-label="ID" class="user-id">#${u._id}</td>
+                <td data-label="User">
                     <div class="user-cell">
                         <div class="avatar-stub">${(u.username || 'U').charAt(0).toUpperCase()}</div>
                         <b>@${u.username || 'NoName'}</b>
                     </div>
                 </td>
-                <td>Lvl ${u.level || 1} <br><small style="color:var(--text-dim)">XP: ${u.exp || u.xp || 0}</small></td>
-                <td>💰 ${u.coins?.toLocaleString() || 0}</td>
-                <td>📦 ${Object.values(u.resources || {}).reduce((a,b)=>a+b, 0)}</td>
-                <td>${u.ai_profile?.name || 'Nova'}</td>
-                <td>
+                <td data-label="Level">Lvl ${u.level || 1} <br><small>XP: ${u.exp || u.xp || 0}</small></td>
+                <td data-label="Money">💰 ${u.coins?.toLocaleString() || 0}</td>
+                <td data-label="Resources">📦 ${Object.values(u.resources || {}).reduce((a,b)=>a+b, 0)}</td>
+                <td data-label="AI">${u.ai_profile?.name || 'Nova'}</td>
+                <td data-label="Status">
                     ${isBanned ? '<span class="badge" style="background:var(--danger)">Banned</span>' : ''}
                     ${isAdmin ? '<span class="badge badge-admin">Developer</span>' : ''}
                     ${isVip ? '<span class="badge badge-vip">VIP</span>' : ''}
