@@ -858,6 +858,9 @@
         } else {
             cdList.innerHTML = 'No active cooldowns';
         }
+        renderInv();
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('editForm').style.display = 'flex';
     }
         
     function updateVipUI() {
