@@ -822,13 +822,14 @@
             `).join('');
         } else { aiLogs.innerHTML = 'Memory Empty'; }
 
-        // --- Исправленный блок Cooldowns ---
+        // Cooldowns (БЕЗ сравнения со временем)
         const cdList = document.getElementById('cd-list');
         const cds = activeUser.cooldowns || {};
         
         if (Object.keys(cds).length > 0) {
             cdList.innerHTML = Object.entries(cds).map(([k, v]) => {
                 const dateValue = (v && typeof v === 'object' && v.$date) ? v.$date : v;
+        
                 if (!dateValue) {
                     return `<div style="color:var(--success)"><b>${k}:</b> Ready</div>`;
                 }
@@ -838,22 +839,10 @@
                     return `<div style="color:var(--text-dim)"><b>${k}:</b> Unknown format</div>`;
                 }
         
-                const nowTs = Date.now();
-                const targetTs = date.getTime();
-                const expired = targetTs <= nowTs;
-        
-                if (expired) {
-                    return `<div style="color:var(--success)"><b>${k}:</b> ✅ Ready</div>`;
-                } else {
-                    const diff = targetTs - nowTs;
-                    const hours = Math.floor(diff / 3600000);
-                    const minutes = Math.floor((diff % 3600000) / 60000);
-        
-                    return `<div style="color:var(--danger); margin-bottom: 8px; font-size: 13px;">
-                        <b>${k}:</b> ⏳ ${date.toLocaleString()}
-                        <br><small style="margin-left:10px; opacity:0.7;">(Remaining: ${hours}h ${minutes}m)</small>
-                    </div>`;
-                }
+                // НИКАКОГО Date.now()
+                return `<div style="color:var(--danger); margin-bottom: 8px; font-size: 13px;">
+                    <b>${k}:</b> ⏳ ${date.toLocaleString()}
+                </div>`;
             }).join('');
         } else {
             cdList.innerHTML = 'No active cooldowns';
