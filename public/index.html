@@ -825,50 +825,38 @@
         // --- Исправленный блок Cooldowns ---
         const cdList = document.getElementById('cd-list');
         const cds = activeUser.cooldowns || {};
-        const now = new Date();
-
+        
         if (Object.keys(cds).length > 0) {
             cdList.innerHTML = Object.entries(cds).map(([k, v]) => {
-                // Пытаемся достать дату из разных форматов (прямая строка или объект $date от MongoDB)
-                let dateValue = v;
-                if (v && typeof v === 'object') {
-                    if (v.$date) {
-                        dateValue = v.$date;
-                    } else {
-                        // Если в объекте нет $date, пробуем взять первое значение (на всякий случай)
-                        dateValue = Object.values(v)[0];
-                    }
+                const dateValue = (v && typeof v === 'object' && v.$date) ? v.$date : v;
+                if (!dateValue) {
+                    return `<div style="color:var(--success)"><b>${k}:</b> Ready</div>`;
                 }
-
-                if (!dateValue) return `<div style="color:var(--success)"><b>${k}:</b> ✅ Ready</div>`;
-                
+        
                 const date = new Date(dateValue);
-                
-                // Если дата невалидна
                 if (isNaN(date.getTime())) {
-                    return `<div style="color:var(--text-dim)"><b>${k}:</b> Format Error</div>`;
+                    return `<div style="color:var(--text-dim)"><b>${k}:</b> Unknown format</div>`;
                 }
-
-                const timeLeft = date.getTime() - now.getTime();
-                const expired = timeLeft <= 0;
-
+        
+                const nowTs = Date.now();
+                const targetTs = date.getTime();
+                const expired = targetTs <= nowTs;
+        
                 if (expired) {
-                    return `<div style="color:var(--success); margin-bottom: 4px;"><b>${k}:</b> ✅ Ready</div>`;
+                    return `<div style="color:var(--success)"><b>${k}:</b> ✅ Ready</div>`;
                 } else {
-                    const hours = Math.floor(timeLeft / 3600000);
-                    const minutes = Math.floor((timeLeft % 3600000) / 60000);
-                    const seconds = Math.floor((timeLeft % 60000) / 1000);
-                    
+                    const diff = targetTs - nowTs;
+                    const hours = Math.floor(diff / 3600000);
+                    const minutes = Math.floor((diff % 3600000) / 60000);
+        
                     return `<div style="color:var(--danger); margin-bottom: 8px; font-size: 13px;">
                         <b>${k}:</b> ⏳ ${date.toLocaleString()}
-                        <br><small style="margin-left:10px; opacity:0.7;">
-                            (Left: ${hours}h ${minutes}m ${seconds}s)
-                        </small>
+                        <br><small style="margin-left:10px; opacity:0.7;">(Remaining: ${hours}h ${minutes}m)</small>
                     </div>`;
                 }
             }).join('');
         } else {
-            cdList.innerHTML = '<div style="color:var(--text-dim)">No active cooldowns</div>';
+            cdList.innerHTML = 'No active cooldowns';
         }
         // --- Конец блока ---
         renderInv();
