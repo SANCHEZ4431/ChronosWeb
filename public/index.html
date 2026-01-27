@@ -509,7 +509,16 @@
         }
     }
 
-
+    @media (max-width: 600px) {
+        header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .btn-logout {
+            width: 100%;
+            margin-top: 10px;
+        }
+    }
     </style>
 </head>
 <body>
@@ -820,7 +829,7 @@
         
         if (Object.keys(cds).length > 0) {
             cdList.innerHTML = Object.entries(cds).map(([k, v]) => {
-                // ИСПРАВЛЕНО: убран пробел в имени переменной dateValue
+                // Исправленная переменная
                 const dateValue = (v && typeof v === 'object' && v.$date) ? v.$date : v;
                 
                 if (!dateValue) return `<div style="color:var(--success)"><b>${k}:</b> Ready</div>`;
@@ -906,22 +915,6 @@
             });
             if(res.ok) showToast(`Admin status: ${val}`);
         } catch(e) { console.error(e); }
-    }
-
-    async function logout() {
-        if (!confirm("Вы уверены, что хотите выйти из админ-панели?")) return;
-    
-        try {
-            const res = await fetch('/api/logout', { method: 'POST' });
-            if (res.ok) {
-                // После успешного выхода перенаправляем на страницу входа
-                window.location.href = '/login.html'; // Укажите путь к вашей странице логина
-            }
-        } catch (e) {
-            console.error("Logout error:", e);
-            // Если API не ответило, просто перезагружаем страницу (сервер сам выкинет из-за отсутствия сессии)
-            window.location.reload();
-        }
     }
 
     function renderInv() {
@@ -1097,6 +1090,22 @@
     }
 
     loadUsers();
+
+    async function logout() {
+        if (!confirm("Вы уверены, что хотите выйти из админ-панели?")) return;
+    
+        try {
+            const res = await fetch('/api/logout', { method: 'POST' });
+            if (res.ok) {
+                // После успешного выхода перенаправляем на страницу входа
+                window.location.href = '/login.html'; // Укажите путь к вашей странице логина
+            }
+        } catch (e) {
+            console.error("Logout error:", e);
+            // Если API не ответило, просто перезагружаем страницу (сервер сам выкинет из-за отсутствия сессии)
+            window.location.reload();
+        }
+    }
 </script>
 </body>
 </html>
