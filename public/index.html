@@ -973,11 +973,11 @@ body::after {
         <table id="userTable">
             <thead>
                 <tr>
+                    <th style="width: 50px;">№</th>
                     <th>Identifier</th>
                     <th>User Profile</th>
-                    <th onclick="toggleLevelSort()" style="cursor: pointer; user-select: none; transition: color 0.2s; position: relative;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">
-                        Level / XP 
-                        <span id="sort-direction-icon" style="margin-left: 5px; font-family: var(--font-mono);">▼</span>
+                    <th onclick="toggleLevelSort()" style="cursor: pointer; user-select: none;" class="glitch-hover">
+                        Level / XP <span id="sort-icon">▼</span>
                     </th>
                     <th>Finances</th>
                     <th>Resources</th>
@@ -1153,13 +1153,11 @@ body::after {
 
     function toggleLevelSort() {
         levelSortAsc = !levelSortAsc;
-        // Определяем, фильтруем мы сейчас или смотрим всех
-        const query = document.getElementById('userSearch').value.toLowerCase().trim();
-        if (query) {
-            filterUsers(); // Если есть поиск, вызываем фильтрацию (она сама вызовет renderTable)
-        } else {
-            renderTable(); // Если поиска нет, просто перерисовываем всех
-        }
+        const icon = document.getElementById('sort-icon');
+        icon.innerText = levelSortAsc ? '▲' : '▼';
+        
+        // Перерисовываем с учетом текущего поиска
+        filterUsers(); 
     }
     
     // Обновленная функция рендеринга (заменить старую)
@@ -1179,7 +1177,7 @@ body::after {
             return;
         }
     
-        body.innerHTML = dataToRender.map((u) => {
+        body.innerHTML = dataToRender.map((u, index) => {
             // Находим оригинальный индекс в allUsers для функции editUser
             const originalIndex = allUsers.findIndex(original => original._id === u._id);
             
