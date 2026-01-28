@@ -1164,29 +1164,28 @@ body::after {
     // Теперь она может принимать массив пользователей (для поиска)
     function renderTable(dataToRender = allUsers) {
         const body = document.getElementById('userList');
-
-        // --- Добавленный блок сортировки ---
+        
+        // Сортировка данных по уровню перед рендером
         dataToRender.sort((a, b) => {
             const lvlA = a.level || 0;
             const lvlB = b.level || 0;
             return levelSortAsc ? lvlA - lvlB : lvlB - lvlA;
         });
-        
+    
         if (dataToRender.length === 0) {
-            body.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 60px; color: var(--text-dim);">No users found matching your request.</td></tr>`;
+            body.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 60px; color: var(--text-dim);">No users found.</td></tr>`;
             return;
         }
     
-        body.innerHTML = dataToRender.map((u, index) => {
-            // Находим оригинальный индекс в allUsers для функции editUser
+        body.innerHTML = dataToRender.map((u, index) => { // Добавляем index
             const originalIndex = allUsers.findIndex(original => original._id === u._id);
-            
             const isAdmin = u.is_admin === true;
             const isVip = u.is_vip === true; 
             const isBanned = u.banned === true;
             
             return `
             <tr onclick="selectRow(this); editUser(${originalIndex})">
+                <td style="color: var(--accent); font-family: var(--font-mono); opacity: 0.5;">${index + 1}</td>
                 <td data-label="ID" class="user-id">#${u._id}</td>
                 <td data-label="User">
                     <div class="user-cell">
@@ -1202,12 +1201,10 @@ body::after {
                     ${isBanned ? '<span class="badge" style="background:var(--danger)">Banned</span>' : ''}
                     ${isAdmin ? '<span class="badge badge-admin">Developer</span>' : ''}
                     ${isVip ? '<span class="badge badge-vip">VIP</span>' : ''}
-                    ${!isAdmin && !isVip && !isBanned ? '<span class="badge" style="background:rgba(255,255,255,0.05)">User</span>' : ''}
                 </td>
             </tr>`;
         }).join('');
     
-        // Обновляем счетчик найденных
         document.getElementById('count-found').innerText = dataToRender.length;
     }
 
