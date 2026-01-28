@@ -244,12 +244,6 @@
     }
 
     tr:last-child td { border-bottom: none; }
-
-    tr:hover td { 
-        background: rgba(0, 229, 255, 0.04); 
-        color: #fff;
-    }
-
     tr.selected td {
     background: linear-gradient(
         90deg,
@@ -911,15 +905,7 @@ body::after {
     50%{box-shadow:0 0 20px var(--accent-glow)}
     100%{box-shadow:0 0 5px var(--accent-glow)}
 }
-
-/* hover scanner */
-tr:hover td::after {
-    content:"";
-    position:absolute;
-    inset:0;
-    background:linear-gradient(90deg,transparent,rgba(0,255,255,.1),transparent);
-    animation:scanrow 1s linear infinite;
-}
+        
 @keyframes scanrow {
     from{background-position:-200%}
     to{background-position:200%}
@@ -1519,7 +1505,7 @@ function showToast(m) {
 
     // печать текста
     const typing = setInterval(() => {
-        toast.innerHTML += message[i];
+        toast.innerHTML += m[i];
         i++;
 
         if (i >= message.length) {
