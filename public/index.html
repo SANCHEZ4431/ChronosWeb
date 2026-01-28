@@ -802,11 +802,96 @@
         100% { transform: translate(0); }
     }
 
+        /* HUD lines */
+body::after {
+    content:"";
+    position:fixed;
+    inset:0;
+    background:
+        linear-gradient(transparent 95%, rgba(0,255,255,.08) 96%),
+        linear-gradient(90deg, transparent 95%, rgba(0,255,255,.08) 96%);
+    background-size: 40px 40px;
+    pointer-events:none;
+    z-index:0;
+}
+
+/* scanning line */
+.scan-line {
+    position:fixed;
+    top:-10%;
+    left:0;
+    width:100%;
+    height:3px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    animation:scan 4s linear infinite;
+    z-index:9998;
+}
+@keyframes scan {
+    0%{top:-10%}
+    100%{top:110%}
+}
+
+/* button pulse */
+.btn-save {
+    animation:pulse 2s infinite;
+}
+@keyframes pulse {
+    0%{box-shadow:0 0 5px var(--accent-glow)}
+    50%{box-shadow:0 0 20px var(--accent-glow)}
+    100%{box-shadow:0 0 5px var(--accent-glow)}
+}
+
+/* hover scanner */
+tr:hover td::after {
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(90deg,transparent,rgba(0,255,255,.1),transparent);
+    animation:scanrow 1s linear infinite;
+}
+@keyframes scanrow {
+    from{background-position:-200%}
+    to{background-position:200%}
+}
+
+/* terminal text */
+.terminal {
+    font-family:'Fira Code',monospace;
+    color:#00ff9c;
+    text-shadow:0 0 10px #00ff9c;
+}
+
+/* loader */
+#loader {
+    position:fixed;
+    inset:0;
+    background:black;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    z-index:99999;
+}
+#loader span {
+    color:#00ffcc;
+    font-family:'Fira Code';
+    animation:typing 3s steps(40) infinite;
+}
+@keyframes typing {
+    0%{width:0}
+    100%{width:100%}
+}
     /* END OF CORE STYLES - STABILITY VERIFIED v4.0.1 */
 </style>
 </head>
 <body>
+<div id="loader">
+    <span>INITIALIZING NEURAL INTERFACE...</span>
+</div>
 
+<div class="scan-line"></div>
+
+<div class="container terminal">
 <div class="container">
     <header>
         <div class="logo">
