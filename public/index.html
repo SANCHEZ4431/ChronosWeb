@@ -975,7 +975,10 @@ body::after {
                 <tr>
                     <th>Identifier</th>
                     <th>User Profile</th>
-                    <th>Level / XP</th>
+                    <th onclick="toggleLevelSort()" style="cursor: pointer; user-select: none; transition: color 0.2s; position: relative;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">
+                        Level / XP 
+                        <span id="sort-direction-icon" style="margin-left: 5px; font-family: var(--font-mono);">▼</span>
+                    </th>
                     <th>Finances</th>
                     <th>Resources</th>
                     <th>Nova AI</th>
@@ -1114,6 +1117,7 @@ body::after {
 
     let allUsers = [];
     let activeUser = null;
+    let levelSortAsc = false;
 
     async function loadUsers() {
         try {
@@ -1146,11 +1150,29 @@ body::after {
         renderTable(filtered);
         document.getElementById('count-found').innerText = filtered.length;
     }
+
+    function toggleLevelSort() {
+        levelSortAsc = !levelSortAsc;
+        // Определяем, фильтруем мы сейчас или смотрим всех
+        const query = document.getElementById('userSearch').value.toLowerCase().trim();
+        if (query) {
+            filterUsers(); // Если есть поиск, вызываем фильтрацию (она сама вызовет renderTable)
+        } else {
+            renderTable(); // Если поиска нет, просто перерисовываем всех
+        }
+    }
     
     // Обновленная функция рендеринга (заменить старую)
     // Теперь она может принимать массив пользователей (для поиска)
     function renderTable(dataToRender = allUsers) {
         const body = document.getElementById('userList');
+
+        // --- Добавленный блок сортировки ---
+        dataToRender.sort((a, b) => {
+            const lvlA = a.level || 0;
+            const lvlB = b.level || 0;
+            return levelSortAsc ? lvlA - lvlB : lvlB - lvlA;
+        });
         
         if (dataToRender.length === 0) {
             body.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 60px; color: var(--text-dim);">No users found matching your request.</td></tr>`;
