@@ -3,229 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Master Control v4.0 Holographic</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>Chronos Master Control v3.2 Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #020205;
-            --surface: rgba(15, 15, 30, 0.7);
-            --surface-bright: rgba(26, 26, 46, 0.9);
-            --accent: #00f2ff;
-            --accent-glow: rgba(0, 242, 255, 0.4);
-            --text: #e2e8f0;
-            --text-dim: #94a3b8;
-            --danger: #ff0055;
-            --success: #00ffaa;
-            --vip: #ffcc00;
-            --border: rgba(255, 255, 255, 0.1);
-            --font-main: 'Plus Jakarta Sans', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
-        }
+:root {
+    --bg: radial-gradient(circle at top, #0a0f1e, #05050a);
+    --glass: rgba(255,255,255,0.06);
+    --glass-strong: rgba(255,255,255,0.12);
+    --accent: #00f7ff;
+    --accent2: #7c3aed;
+    --danger: #ff3366;
+    --success: #00ffa3;
+    --vip: #facc15;
+    --admin: #ef4444;
+    --text: #e5e7eb;
+    --text-dim: #94a3b8;
+}
 
-        * { box-sizing: border-box; transition: all 0.2s ease-out; }
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+}
 
-        body {
-            font-family: var(--font-main);
-            background: var(--bg);
-            background-image: 
-                radial-gradient(circle at 50% -20%, #1a1a3e 0%, transparent 50%),
-                linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
-            color: var(--text);
-            margin: 0;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+.container {
+    max-width: 1500px;
+    margin: auto;
+    padding: 30px;
+}
 
-        /* --- Scrollbar --- */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; box-shadow: 0 0 10px var(--accent-glow); }
+header {
+    background: linear-gradient(135deg, rgba(0,255,255,0.1), rgba(124,58,237,0.1));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 60px rgba(0,255,255,0.15);
+}
 
-        .container { max-width: 1600px; margin: 0 auto; padding: 40px 20px; }
+.logo h1 {
+    font-size: 28px;
+    background: linear-gradient(90deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-        /* --- Header & Glass Panels --- */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 25px;
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-        }
+.stat-pill {
+    background: rgba(255,255,255,0.08);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
 
-        .logo h1 {
-            margin: 0; font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;
-            background: linear-gradient(90deg, #fff, var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 8px var(--accent-glow));
-        }
+.stat-pill span {
+    color: var(--accent);
+    font-weight: 700;
+}
 
-        .stats-overview { display: flex; gap: 15px; align-items: center; }
+.table-card {
+    margin-top: 20px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 0 80px rgba(0,255,255,0.08);
+    overflow: hidden;
+}
 
-        .stat-pill {
-            background: rgba(255,255,255,0.03);
-            padding: 10px 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            font-size: 13px; font-weight: 600;
-        }
-        .stat-pill span { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+th {
+    background: rgba(255,255,255,0.03);
+    color: var(--text-dim);
+    padding: 18px;
+    text-transform: uppercase;
+    font-size: 11px;
+}
 
-        /* --- Search Bar --- */
-        .search-container {
-            position: relative; margin-bottom: 30px;
-        }
-        .search-container input {
-            width: 100%; height: 60px; background: var(--surface);
-            border: 1px solid var(--border); border-radius: 18px;
-            padding: 0 60px; color: #fff; font-size: 16px;
-            backdrop-filter: blur(10px);
-        }
-        .search-container input:focus {
-            border-color: var(--accent); outline: none; box-shadow: 0 0 20px var(--accent-glow);
-        }
-        .search-icon { position: absolute; left: 25px; top: 18px; color: var(--accent); font-size: 20px; }
+td {
+    padding: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
 
-        /* --- Table Styling --- */
-        .table-card {
-            background: var(--surface); backdrop-filter: blur(12px);
-            border-radius: 24px; border: 1px solid var(--border); overflow: hidden;
-        }
-        table { width: 100%; border-collapse: collapse; }
-        th { 
-            text-align: left; padding: 20px; font-size: 11px; text-transform: uppercase; 
-            letter-spacing: 2px; color: var(--text-dim); border-bottom: 1px solid var(--border);
-        }
-        td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 14px; }
-        tr:hover td { background: rgba(0, 242, 255, 0.05); cursor: pointer; }
+tr:hover td {
+    background: linear-gradient(90deg, rgba(0,255,255,0.05), transparent);
+}
 
-        .avatar-stub {
-            width: 40px; height: 40px; border-radius: 12px;
-            background: linear-gradient(135deg, var(--accent), #0066ff);
-            color: #000; font-weight: 800; display: flex; align-items: center; justify-content: center;
-        }
+.avatar-stub {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-weight: 900;
+}
 
-        /* --- Badges --- */
-        .badge {
-            padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase;
-        }
-        .badge-vip { background: var(--vip); color: #000; box-shadow: 0 0 15px rgba(255,204,0,0.4); }
-        .badge-admin { background: var(--danger); color: #fff; box-shadow: 0 0 15px rgba(255,0,85,0.4); }
+.badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+}
 
-        /* --- Modal System --- */
-        #editForm {
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 90vw; max-width: 1300px; height: 85vh;
-            background: var(--surface-bright); backdrop-filter: blur(30px);
-            border-radius: 32px; border: 1px solid rgba(255,255,255,0.15);
-            z-index: 1001; flex-direction: column; overflow: hidden;
-            box-shadow: 0 0 100px rgba(0,0,0,0.8);
-        }
+.badge-vip {
+    background: linear-gradient(135deg, gold, orange);
+    color: black;
+}
 
-        .tabs-header { 
-            display: flex; gap: 10px; padding: 20px 30px; background: rgba(0,0,0,0.3);
-        }
-        .tab-btn {
-            background: transparent; border: none; color: var(--text-dim); padding: 12px 24px;
-            border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px;
-        }
-        .tab-btn.active { background: var(--accent); color: #000; box-shadow: 0 0 20px var(--accent-glow); }
+.badge-admin {
+    background: linear-gradient(135deg, red, darkred);
+}
 
-        .modal-scrollbox { padding: 40px; overflow-y: auto; flex-grow: 1; }
-        
-        .card-box {
-            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-            border-radius: 20px; padding: 25px; margin-bottom: 20px;
-        }
-        .card-box h3 { 
-            margin-top: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent);
-            display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
-        }
+#overlay {
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+}
 
-        /* --- Inputs --- */
-        label { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin: 15px 0 8px; font-weight: 700; }
-        input, select, textarea {
-            width: 100%; padding: 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
-            border-radius: 12px; color: #fff; font-family: var(--font-mono); font-size: 13px;
-        }
-        input:focus { border-color: var(--accent); outline: none; background: rgba(0,0,0,0.5); }
+#editForm {
+    background: rgba(15,15,30,0.95);
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 120px rgba(0,255,255,0.2);
+}
 
-        /* --- Grid Layouts --- */
-        .editor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
-        .dynamic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+.tabs-header {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+}
 
-        /* --- Inventory Tiles --- */
-        .item-tile {
-            background: rgba(0,0,0,0.4); padding: 20px; border-radius: 16px; border-top: 2px solid #444;
-            position: relative; overflow: hidden;
-        }
-        .item-tile.legendary { border-top-color: var(--vip); background: linear-gradient(to bottom, rgba(255,204,0,0.1), transparent); }
-        .item-tile.epic { border-top-color: #d000ff; }
-        .item-tile.rare { border-top-color: #0077ff; }
+.tab-btn {
+    color: var(--text-dim);
+}
 
-        .btn {
-            padding: 12px 25px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer;
-            display: flex; align-items: center; gap: 8px; justify-content: center;
-        }
-        .btn-save { background: var(--accent); color: #000; }
-        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-glow); }
-        .btn-close { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); }
+.tab-btn.active {
+    color: var(--accent);
+    box-shadow: inset 0 -3px 0 var(--accent);
+}
 
-        #overlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,20,0.8);
-            backdrop-filter: blur(8px); z-index: 1000;
-        }
+.card-box {
+    background: rgba(255,255,255,0.04);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: inset 0 0 30px rgba(0,255,255,0.05);
+}
 
-        #toast {
-            position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: #000;
-            padding: 16px 30px; border-radius: 16px; font-weight: 800; z-index: 9999;
-            transform: translateY(200px); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #toast.visible { transform: translateY(0); }
+input, select, textarea {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+}
 
-        /* --- AI Memory Box --- */
-        #ai-logs {
-            background: rgba(0,0,0,0.5); border-radius: 16px; border: 1px solid var(--border);
-            padding: 20px; font-family: var(--font-mono); line-height: 1.6;
-        }
+input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(0,255,255,0.4);
+}
 
-        /* --- Mobile --- */
-        @media (max-width: 768px) {
-            .editor-grid { grid-template-columns: 1fr; }
-            header { flex-direction: column; gap: 20px; }
-            .modal-scrollbox { padding: 20px; }
-            #editForm { width: 100%; height: 100%; border-radius: 0; }
-            td::before { content: attr(data-label); color: var(--accent); font-size: 10px; }
-            tr { display: block; background: var(--surface); margin-bottom: 15px; border-radius: 15px; }
-            td { display: flex; justify-content: space-between; border: none; }
-            thead { display: none; }
-        }
-    </style>
+.btn {
+    border-radius: 14px;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: black;
+}
+
+.btn-save:hover {
+    box-shadow: 0 0 25px rgba(0,255,255,0.6);
+    transform: translateY(-2px);
+}
+
+.item-tile {
+    background: rgba(0,0,0,0.6);
+    border-radius: 16px;
+    border-left: 4px solid var(--accent);
+}
+
+.item-tile.legendary { border-left-color: gold; }
+.item-tile.epic { border-left-color: violet; }
+.item-tile.rare { border-left-color: dodgerblue; }
+
+#toast {
+    background: rgba(0,0,0,0.7);
+    border-left: 4px solid var(--accent);
+    box-shadow: 0 0 30px rgba(0,255,255,0.4);
+}
+        /* === BACKGROUND GRID === */
+.bg-grid {
+    position: fixed;
+    inset: 0;
+    background:
+        linear-gradient(rgba(0,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,255,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+    animation: gridMove 30s linear infinite;
+}
+
+@keyframes gridMove {
+    from { transform: translateY(0); }
+    to { transform: translateY(60px); }
+}
+
+/* === SCANLINES === */
+.scanlines {
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0) 0px,
+        rgba(0,0,0,0) 2px,
+        rgba(0,255,255,0.04) 3px
+    );
+    pointer-events: none;
+    z-index: 2;
+    animation: scanMove 8s linear infinite;
+}
+
+@keyframes scanMove {
+    from { background-position: 0 0; }
+    to { background-position: 0 200px; }
+}
+
+/* === GLOW CORE === */
+body::before {
+    content:"";
+    position: fixed;
+    inset:0;
+    background: radial-gradient(circle at center, rgba(0,255,255,0.08), transparent 60%);
+    z-index:0;
+    pointer-events:none;
+}
+
+/* === MODAL ANIMATION === */
+#editForm {
+    animation: modalOpen 0.5s cubic-bezier(.2,.9,.3,1);
+}
+
+@keyframes modalOpen {
+    from {
+        transform: translate(-50%, -60%) scale(0.85);
+        opacity: 0;
+        filter: blur(10px);
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* === TABLE GLOW === */
+.table-card {
+    position: relative;
+}
+.table-card::before {
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:20px;
+    box-shadow: inset 0 0 60px rgba(0,255,255,0.15);
+    pointer-events:none;
+}
+
+/* === NEON BORDERS === */
+.card-box, .table-card, header {
+    box-shadow: 0 0 40px rgba(0,255,255,0.15);
+}
+
+/* === MATRIX TEXT FLICKER === */
+.logo h1 {
+    animation: flicker 4s infinite alternate;
+}
+
+@keyframes flicker {
+    0% { opacity:1; }
+    45% { opacity:0.95; }
+    50% { opacity:0.8; }
+    55% { opacity:1; }
+    70% { opacity:0.9; }
+}
+
+/* === BUTTON PULSE === */
+.btn-save {
+    animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 10px rgba(0,255,255,0.4); }
+    50% { box-shadow: 0 0 25px rgba(0,255,255,0.9); }
+    100% { box-shadow: 0 0 10px rgba(0,255,255,0.4); }
+}
+
+/* === CURSOR GLOW === */
+tr:hover {
+    box-shadow: inset 0 0 20px rgba(0,255,255,0.3);
+}
+
+</style>
 </head>
 <body>
+<div class="bg-grid"></div>
+<div class="scanlines"></div>
 
 <div class="container">
     <header>
         <div class="logo">
-            <h1>Chronos <span style="font-weight: 400; opacity: 0.6;">Database</span></h1>
+            <h1>Chronos Master Control</h1>
         </div>
         <div class="stats-overview">
-            <div class="stat-pill">Database: <span id="count-users">0</span></div>
-            <div class="stat-pill">Elite: <span id="count-vips">0</span></div>
-            <button class="btn btn-save" onclick="loadUsers()" style="padding: 8px 15px; font-size: 11px;">SYNC</button>
-            <button class="btn btn-close" onclick="logout()" style="padding: 8px 15px; font-size: 11px; color: var(--danger);">EXIT</button>
+            <div class="stat-pill">Users: <span id="count-users">0</span></div>
+            <div class="stat-pill">VIP: <span id="count-vips">0</span></div>
+            <button class="btn btn-save" style="padding: 8px 15px; font-size: 12px;" onclick="loadUsers()">🔄 Reload</button>
+            <button class="btn btn-close" style="padding: 8px 15px; font-size: 12px; background: rgba(255,51,102,0.1); border: 1px solid var(--danger); color: var(--danger);" onclick="logout()">🚪 Logout</button>
         </div>
     </header>
 
-    <div class="search-container">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="userSearch" placeholder="SEARCH OPERATIVE BY ID OR ALIAS..." oninput="filterUsers()">
-        <div class="stat-pill" style="position: absolute; right: 15px; top: 12px;">Found: <span id="count-found">0</span></div>
+    <div class="search-bar" style="margin-bottom: 20px; display: flex; gap: 15px;">
+        <div style="position: relative; flex: 1;">
+            <input type="text" id="userSearch" placeholder="Search by ID or Username (e.g. @sanchez or 505952...)" 
+                   style="padding-left: 45px; height: 50px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1);"
+                   oninput="filterUsers()">
+            <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 18px;">🔍</span>
+        </div>
+        <div class="stat-pill" style="display: flex; align-items: center; justify-content: center; min-width: 150px;">
+            Found: <span id="count-found" style="margin-left: 8px;">0</span>
+        </div>
     </div>
 
     <div class="table-card">
@@ -233,16 +342,16 @@
             <thead>
                 <tr>
                     <th>Identifier</th>
-                    <th>Operative</th>
-                    <th>Rank / Power</th>
-                    <th>Credits</th>
-                    <th>Inventory</th>
-                    <th>Neural AI</th>
-                    <th>Network Status</th>
+                    <th>User Profile</th>
+                    <th>Level / XP</th>
+                    <th>Finances</th>
+                    <th>Resources</th>
+                    <th>Nova AI</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody id="userList">
-                <tr><td colspan="7" style="text-align:center; padding: 100px; color: var(--accent);">INITIALIZING NEXUS CONNECTION...</td></tr>
+                <tr><td colspan="7" style="text-align:center; padding: 60px; color: var(--text-dim);">Connecting to Database Nexus...</td></tr>
             </tbody>
         </table>
     </div>
@@ -252,86 +361,90 @@
 
 <div id="editForm">
     <div class="tabs-header">
-        <button class="tab-btn active" onclick="openTab(event, 'p-main')">CORE PROFILE</button>
-        <button class="tab-btn" onclick="openTab(event, 'p-res')">CARGO</button>
-        <button class="tab-btn" onclick="openTab(event, 'p-skills')">AUGMENTS</button>
-        <button class="tab-btn" onclick="openTab(event, 'p-inv')">ARMORY</button>
-        <button class="tab-btn" onclick="openTab(event, 'p-nova')">NEURAL LINK</button>
-        <button class="tab-btn" onclick="openTab(event, 'p-system')">SYSTEM</button>
+        <button class="tab-btn active" onclick="openTab(event, 'p-main')">📊 Profile</button>
+        <button class="tab-btn" onclick="openTab(event, 'p-res')">📦 Resources</button>
+        <button class="tab-btn" onclick="openTab(event, 'p-skills')">⚡ Skills</button>
+        <button class="tab-btn" onclick="openTab(event, 'p-inv')">🎒 Inventory</button>
+        <button class="tab-btn" onclick="openTab(event, 'p-nova')">🤖 Nova AI</button>
+        <button class="tab-btn" onclick="openTab(event, 'p-system')">⚙️ System</button>
     </div>
 
     <div class="modal-scrollbox">
         <div id="p-main" class="tab-content active">
             <div class="editor-grid">
                 <div class="card-box">
-                    <h3>👤 Biological ID</h3>
-                    <label>Internal GUID</label><input type="text" id="v-id" disabled>
-                    <label>Operative Alias</label><input type="text" id="v-user">
-                    <label>Power Level</label><input type="number" id="v-lvl">
-                    <label>Neural XP</label><input type="number" id="v-xp">
+                    <h3>👤 Identity</h3>
+                    <label>Internal ID</label><input type="text" id="v-id" disabled>
+                    <label>Alias / Username</label><input type="text" id="v-user">
+                    <label>Current Level</label><input type="number" id="v-lvl">
+                    <label>Experience Points</label><input type="number" id="v-xp">
                 </div>
                 <div class="card-box">
-                    <h3>💎 Assets</h3>
-                    <label>Gold Credits</label><input type="number" id="v-coins">
+                    <h3>💎 Economics</h3>
+                    <label>Gold Coins</label><input type="number" id="v-coins">
                     <label>Void Essence</label><input type="number" id="v-essence">
-                    <label>Faction</label><input type="text" id="v-clan">
+                    <label>Clan Association</label><input type="text" id="v-clan">
                 </div>
                 <div class="card-box">
-                    <h3>🛡️ Access Level</h3>
-                    <label>Privilege Type</label>
+                    <h3>🛡️ Privileges</h3>
+                    <label>Admin Rights</label>
                     <select id="v-is-admin" onchange="toggleAdmin(this.value)">
-                        <option value="false">Standard Agent</option>
-                        <option value="true">Root Administrator</option>
+                        <option value="false">Standard User</option>
+                        <option value="true">System Administrator</option>
                     </select>
-                    <label>Elite Status (VIP)</label>
-                    <div id="vip-info" style="margin-bottom:15px; padding:12px; background:rgba(0,0,0,0.3); border-radius:12px; border-left:3px solid var(--vip);"></div>
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <input type="number" id="vip-days-input" value="30" placeholder="Days">
-                        <button class="btn btn-save" onclick="grantVipCustom()">GRANT</button>
+                
+                    <label>VIP Subscription Control</label>
+                    <div id="vip-info" style="font-size: 11px; margin-bottom: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;"></div>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="number" id="vip-days-input" value="30" style="flex: 1;" placeholder="Days">
+                        <button class="btn btn-save" style="flex: 2; padding: 10px;" onclick="grantVipCustom()">Grant VIP</button>
                     </div>
-                    <button class="btn btn-close" style="width:100%; color: var(--danger);" onclick="revokeVip()">REVOKE ACCESS</button>
+                    
+                    <button class="btn btn-close" style="width:100%; color: var(--danger); border: 1px solid rgba(255,51,102,0.3);" onclick="revokeVip()">Revoke VIP Status</button>
                 </div>
             </div>
         </div>
 
         <div id="p-res" class="tab-content">
             <div class="card-box">
-                <h3>📦 Harvested Resources</h3>
-                <div id="dynamic-res-grid" class="dynamic-grid"></div>
+                <h3>📦 Raw Materials</h3>
+                <div id="dynamic-res-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 20px;"></div>
             </div>
         </div>
 
         <div id="p-skills" class="tab-content">
             <div class="card-box">
-                <h3>⚡ Active Augmentations</h3>
-                <div id="dynamic-skills-grid" class="dynamic-grid"></div>
+                <h3>⚡ Active Skill Levels</h3>
+                <div id="dynamic-skills-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 20px;"></div>
             </div>
         </div>
 
         <div id="p-inv" class="tab-content">
-            <div class="card-box" style="background: rgba(0, 242, 255, 0.05); border-color: var(--accent);">
-                <h3>✨ Matter Injection</h3>
+            <div class="card-box" style="margin-bottom:20px; background: rgba(0, 229, 255, 0.05);">
+                <h3>✨ Item Injection</h3>
                 <div style="display:flex; gap:15px;">
-                    <select id="add-item-sel" style="flex:2;"></select>
+                    <select id="add-item-sel" style="flex:2;">
+                        </select>
                     <input type="number" id="add-item-qty" value="1" style="flex:0.5;">
-                    <button class="btn btn-save" onclick="addItemToInv()">INJECT</button>
+                    <button class="btn btn-save" onclick="addItemToInv()">Inject</button>
                 </div>
             </div>
-            <div id="inv-list" class="dynamic-grid" style="margin-top:20px;"></div>
+            <div id="inv-list" class="inv-wrapper"></div>
         </div>
 
         <div id="p-nova" class="tab-content">
             <div class="editor-grid">
                 <div class="card-box">
-                    <h3>🧠 Neural Personality</h3>
-                    <label>AI Designation</label><input type="text" id="ai-name">
-                    <label>Sync Level</label><input type="number" id="ai-rel">
-                    <label>Gender Core</label><input type="text" id="ai-gender">
-                    <label>Linguistic Style</label><textarea id="ai-style" rows="4"></textarea>
+                    <h3>🧠 Personality</h3>
+                    <label>Nova Name</label><input type="text" id="ai-name">
+                    <label>Relationship Level</label><input type="number" id="ai-rel">
+                    <label>Gender/Type</label><input type="text" id="ai-gender">
+                    <label>Speech Style</label><textarea id="ai-style" rows="3"></textarea>
                 </div>
                 <div class="card-box" style="grid-column: span 2;">
-                    <h3>🎞️ Memory Buffer</h3>
-                    <div id="ai-logs" style="height:400px; overflow-y:auto;"></div>
+                    <h3>🎞️ Recent Memory</h3>
+                    <div id="ai-logs" style="height:350px; background:#000; border-radius:10px; padding:15px; overflow-y:auto; font-family:'Fira Code'; font-size:12px;"></div>
                 </div>
             </div>
         </div>
@@ -339,32 +452,31 @@
         <div id="p-system" class="tab-content">
             <div class="editor-grid">
                 <div class="card-box">
-                    <h3>🚫 Protocol Restrictions</h3>
-                    <label>Blacklist Status</label>
+                    <h3>🚫 Access Control</h3>
+                    <label>Ban Status</label>
                     <select id="v-banned">
-                        <option value="false">Clear</option>
-                        <option value="true">TERMINATED</option>
+                        <option value="false">No Restriction</option>
+                        <option value="true">BANNED</option>
                     </select>
-                    <label>Violation Count</label><input type="number" id="v-warns">
+                    <label>Warn Count</label><input type="number" id="v-warns">
                 </div>
                 <div class="card-box">
-                    <h3>🕒 Temporal Cooldowns</h3>
-                    <div id="cd-list" style="font-family: var(--font-mono); font-size: 12px;"></div>
+                    <h3>🕒 Cooldowns</h3>
+                    <div id="cd-list" style="font-size:12px;"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal-footer" style="padding: 25px 40px; background: rgba(0,0,0,0.3); display: flex; justify-content: flex-end; gap: 15px;">
-        <button class="btn btn-close" onclick="closeEdit()">ABORT</button>
-        <button class="btn btn-save" onclick="processSave()">COMMIT CHANGES</button>
+    <div class="modal-footer">
+        <button class="btn btn-close" onclick="closeEdit()">Discard</button>
+        <button class="btn btn-save" onclick="processSave()">💾 Commit Changes</button>
     </div>
 </div>
 
-<div id="toast">SYSTEM SYNCED</div>
+<div id="toast">Operation Successful</div>
 
 <script>
-    /* ВЕСЬ ВАШ JS-КОД ОСТАЕТСЯ БЕЗ ИЗМЕНЕНИЙ, ТАК КАК ID И КЛАССЫ СОХРАНЕНЫ */
     const RES_TYPES = ["gold", "wood", "stone", "iron", "magic_crystals", "ores", "fabric", "food", "rare_artifacts"];
     const SKILL_TYPES = ["exp_boost", "resource_gain", "luck", "gold_gain", "wisdom", "cooldown_reduction", "pet_bonus"];
 
@@ -375,60 +487,81 @@
         try {
             const r = await fetch('/api/users');
             allUsers = await r.json();
-            document.getElementById('userSearch').value = '';
+            document.getElementById('userSearch').value = ''; // Сброс поля поиска
             renderTable();
             updateStats();
-        } catch(e) { console.error("API Error", e); }
+            console.log("Data refreshed from DB");
+        } catch(e) { 
+            console.error("API Error", e); 
+        }
     }
 
     function filterUsers() {
         const query = document.getElementById('userSearch').value.toLowerCase().trim();
-        if (!query) { renderTable(allUsers); return; }
+        
+        // Если поиск пустой, отображаем всех
+        if (!query) {
+            renderTable(allUsers);
+            return;
+        }
+    
         const filtered = allUsers.filter(u => {
             const idMatch = String(u._id).includes(query);
             const nameMatch = (u.username || "").toLowerCase().includes(query.replace('@', ''));
             return idMatch || nameMatch;
         });
+    
         renderTable(filtered);
+        document.getElementById('count-found').innerText = filtered.length;
     }
     
+    // Обновленная функция рендеринга (заменить старую)
+    // Теперь она может принимать массив пользователей (для поиска)
     function renderTable(dataToRender = allUsers) {
         const body = document.getElementById('userList');
+        
         if (dataToRender.length === 0) {
-            body.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 100px; color: var(--text-dim);">NO OPERATIVES FOUND IN THIS SECTOR.</td></tr>`;
+            body.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 60px; color: var(--text-dim);">No users found matching your request.</td></tr>`;
             return;
         }
+    
         body.innerHTML = dataToRender.map((u) => {
+            // Находим оригинальный индекс в allUsers для функции editUser
             const originalIndex = allUsers.findIndex(original => original._id === u._id);
+            
             const isAdmin = u.is_admin === true;
             const isVip = u.is_vip === true; 
             const isBanned = u.banned === true;
+            
             return `
             <tr onclick="editUser(${originalIndex})">
-                <td data-label="ID">#${u._id}</td>
+                <td data-label="ID" class="user-id">#${u._id}</td>
                 <td data-label="User">
-                    <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="user-cell">
                         <div class="avatar-stub">${(u.username || 'U').charAt(0).toUpperCase()}</div>
-                        <b>@${u.username || 'Unknown'}</b>
+                        <b>@${u.username || 'NoName'}</b>
                     </div>
                 </td>
-                <td data-label="Level">LVL ${u.level || 1} <br><small style="opacity:0.5">XP: ${u.exp || 0}</small></td>
-                <td data-label="Money" style="color:var(--success)">${u.coins?.toLocaleString() || 0} CR</td>
+                <td data-label="Level">Lvl ${u.level || 1} <br><small>XP: ${u.exp || u.xp || 0}</small></td>
+                <td data-label="Money">💰 ${u.coins?.toLocaleString() || 0}</td>
                 <td data-label="Resources">📦 ${Object.values(u.resources || {}).reduce((a,b)=>a+b, 0)}</td>
                 <td data-label="AI">${u.ai_profile?.name || 'Nova'}</td>
                 <td data-label="Status">
-                    ${isBanned ? '<span class="badge" style="background:var(--danger)">Terminated</span>' : ''}
-                    ${isAdmin ? '<span class="badge badge-admin">Root</span>' : ''}
-                    ${isVip ? '<span class="badge badge-vip">Elite</span>' : ''}
-                    ${!isAdmin && !isVip && !isBanned ? '<span class="badge" style="background:rgba(255,255,255,0.1)">Active</span>' : ''}
+                    ${isBanned ? '<span class="badge" style="background:var(--danger)">Banned</span>' : ''}
+                    ${isAdmin ? '<span class="badge badge-admin">Developer</span>' : ''}
+                    ${isVip ? '<span class="badge badge-vip">VIP</span>' : ''}
+                    ${!isAdmin && !isVip && !isBanned ? '<span class="badge" style="background:rgba(255,255,255,0.05)">User</span>' : ''}
                 </td>
             </tr>`;
         }).join('');
+    
+        // Обновляем счетчик найденных
         document.getElementById('count-found').innerText = dataToRender.length;
     }
 
     function editUser(index) {
         activeUser = JSON.parse(JSON.stringify(allUsers[index]));
+        
         document.getElementById('v-id').value = activeUser._id;
         document.getElementById('v-user').value = activeUser.username || '';
         document.getElementById('v-lvl').value = activeUser.level || 1;
@@ -442,6 +575,7 @@
 
         updateVipUI();
 
+        // Resources Tab
         const resGrid = document.getElementById('dynamic-res-grid');
         resGrid.innerHTML = RES_TYPES.map(rt => `
             <div>
@@ -450,6 +584,7 @@
             </div>
         `).join('');
 
+        // Skills Tab
         const skillGrid = document.getElementById('dynamic-skills-grid');
         skillGrid.innerHTML = SKILL_TYPES.map(st => `
             <div>
@@ -458,33 +593,50 @@
             </div>
         `).join('');
 
+        // AI 
         const ai = activeUser.ai_profile || {};
         document.getElementById('ai-name').value = ai.name || 'Nova';
         document.getElementById('ai-rel').value = ai.relationship_level || 0;
         document.getElementById('ai-gender').value = ai.gender || '';
         document.getElementById('ai-style').value = ai.speech_style || '';
 
+        // AI History
         const aiLogs = document.getElementById('ai-logs');
         if (activeUser.ai_history && activeUser.ai_history.length > 0) {
             aiLogs.innerHTML = activeUser.ai_history.map(msg => `
-                <div style="margin-bottom: 12px; padding: 10px; background:rgba(255,255,255,0.02); border-radius:8px;">
-                    <span style="color: var(--accent); font-size:10px;">[${msg.role?.toUpperCase()}]</span><br> 
-                    <span style="color: #ccc; font-size:13px;">${msg.content}</span>
+                <div style="margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px;">
+                    <span style="color: var(--accent)">[${msg.role?.toUpperCase()}]:</span> 
+                    <span style="color: #ccc">${msg.content}</span>
                 </div>
             `).join('');
-        } else { aiLogs.innerHTML = 'MEMORY EMPTY'; }
+        } else { aiLogs.innerHTML = 'Memory Empty'; }
 
+        // Cooldowns (БЕЗ сравнения со временем)
         const cdList = document.getElementById('cd-list');
         const cds = activeUser.cooldowns || {};
+        
         if (Object.keys(cds).length > 0) {
             cdList.innerHTML = Object.entries(cds).map(([k, v]) => {
                 const dateValue = (v && typeof v === 'object' && v.$date) ? v.$date : v;
-                if (!dateValue) return `<div><b>${k}:</b> READY</div>`;
+        
+                if (!dateValue) {
+                    return `<div style="color:var(--success)"><b>${k}:</b> Ready</div>`;
+                }
+        
                 const date = new Date(dateValue);
-                return `<div style="color:var(--danger); margin-bottom: 5px;"><b>${k}:</b> ⏳ ${date.toLocaleString()}</div>`;
+                if (isNaN(date.getTime())) {
+                    return `<div style="color:var(--text-dim)"><b>${k}:</b> Unknown format</div>`;
+                }
+        
+                // НИКАКОГО Date.now()
+                return `<div style="color:var(--danger); margin-bottom: 8px; font-size: 13px;">
+                    <b>${k}:</b> ⏳ ${date.toLocaleString()}
+                </div>`;
             }).join('');
-        } else { cdList.innerHTML = 'NO ACTIVE COOLDOWNS'; }
-
+        } else {
+            cdList.innerHTML = 'No active cooldowns';
+        }
+        // --- Конец блока ---
         renderInv();
         document.getElementById('overlay').style.display = 'block';
         document.getElementById('editForm').style.display = 'flex';
@@ -492,38 +644,47 @@
         
     function updateVipUI() {
         const vipInfo = document.getElementById('vip-info');
+        // Просто проверяем флаг, который прислал сервер после агрегации
         if (activeUser.is_vip) {
-            const expiryDate = activeUser.vip_until ? new Date(activeUser.vip_until).toLocaleDateString() : "LIFETIME";
-            vipInfo.innerHTML = `<b style="color:var(--vip)">ACTIVE PROTOCOL</b><br>EXPIRES: ${expiryDate}`;
+            const expiryDate = activeUser.vip_until ? new Date(activeUser.vip_until).toLocaleDateString() : "Lifetime";
+            vipInfo.innerHTML = `<b style="color:var(--vip)">✅ VIP ACTIVE</b><br>Expires: ${expiryDate}`;
         } else {
-            vipInfo.innerHTML = `<b style="color:var(--text-dim)">INACTIVE PROTOCOL</b>`;
+            vipInfo.innerHTML = `<b style="color:var(--text-dim)">❌ VIP INACTIVE</b>`;
         }
     }
 
     async function grantVipCustom() {
         const days = document.getElementById('vip-days-input').value;
-        if (!days || days <= 0) return alert("ENTER VALID CYCLE COUNT");
+        if (!days || days <= 0) return alert("Please enter valid number of days");
+    
         try {
             const res = await fetch('/api/set-vip', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ user_id: activeUser._id, days: parseInt(days) })
+                body: JSON.stringify({ 
+                    user_id: activeUser._id, 
+                    days: parseInt(days) 
+                })
             });
+    
             if(res.ok) {
-                showToast(`VIP GRANTED: ${days} DAYS`);
+                showToast(`VIP granted for ${days} days`);
+                // Локально обновляем дату для UI, чтобы не ждать перезагрузки
                 const newDate = new Date();
                 newDate.setDate(newDate.getDate() + parseInt(days));
                 activeUser.is_vip = true;
                 activeUser.vip_until = newDate;
                 updateVipUI();
             }
-        } catch(e) { alert("COMMS ERROR"); }
+        } catch(e) {
+            alert("Error updating VIP status");
+        }
     }
-
     async function revokeVip() {
-        if(!confirm("TERMINATE ELITE STATUS?")) return;
+        if(!confirm("Are you sure you want to revoke VIP status?")) return;
         activeUser.is_vip = false;
         activeUser.vip_until = null;
+        // Просто сохраняем через основной API
         processSave();
     }
 
@@ -535,7 +696,7 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ user_id: activeUser._id, action: action })
             });
-            if(res.ok) showToast(`PRIVILEGE: ${val}`);
+            if(res.ok) showToast(`Admin status: ${val}`);
         } catch(e) { console.error(e); }
     }
 
@@ -543,25 +704,34 @@
         const box = document.getElementById('inv-list');
         box.innerHTML = '';
         const items = activeUser.inventory || {};
+        
         for (let key in items) {
             let amount, rarity;
+    
+            // Проверка: является ли значение объектом (как Crown of Mastery) или числом (как shadow_note)
             if (typeof items[key] === 'object' && items[key] !== null) {
                 amount = items[key].amount || 0;
                 rarity = items[key].rarity || 'common';
             } else {
-                amount = items[key]; rarity = 'common'; 
+                // Если это просто число (случай shadow_note: 5)
+                amount = items[key];
+                rarity = 'common'; 
             }
+    
+            // Пропускаем системные поля, если они есть в inventory
             if (['exp', 'coins', 'resources'].includes(key)) continue;
+    
             box.innerHTML += `
                 <div class="item-tile ${rarity}">
-                    <span style="display:block; font-weight:800; font-size:12px;">${key}</span>
-                    <span style="color:var(--accent); font-family:var(--font-mono)">x${amount}</span>
-                    <button onclick="remItem('${key}')" style="position:absolute; top:5px; right:5px; background:none; border:none; color:var(--danger); cursor:pointer;">×</button>
+                    <span class="name">${key}</span>
+                    <span class="val">x${amount}</span>
+                    <button onclick="remItem('${key}')" style="position:absolute; top:5px; right:5px; background:none; border:none; color:red; cursor:pointer; font-size: 18px;">×</button>
                 </div>
             `;
         }
     }
 
+    // 1. Константа со списком всех предметов
     const AVAILABLE_ITEMS = [
         {"name": "Talisman of Knowledge", "rarity": "common"},
         {"name": "Coin Bank", "rarity": "common"},
@@ -586,30 +756,53 @@
         {"name": "shadow_note", "rarity": "common"}
     ];
     
+    // 2. Функция инициализации списка (вызовите её при загрузке страницы)
     function initItemSelector() {
         const sel = document.getElementById('add-item-sel');
         sel.innerHTML = AVAILABLE_ITEMS.map(item => {
-            return `<option value="${item.name}">${item.name} [${item.rarity.toUpperCase()}]</option>`;
+            // Если rarity отсутствует, используем 'common' по умолчанию
+            const rarityText = (item.rarity || 'common').toUpperCase(); 
+            return `<option value="${item.name}">${item.name} (${rarityText})</option>`;
         }).join('');
     }
     
+    // 3. Обновленная функция добавления
     function addItemToInv() {
         const name = document.getElementById('add-item-sel').value;
         const qty = parseInt(document.getElementById('add-item-qty').value);
+        
+        // Находим данные о предмете
         const itemData = AVAILABLE_ITEMS.find(i => i.name === name);
         const rarity = itemData && itemData.rarity ? itemData.rarity : 'common';
+        
         if(!activeUser.inventory) activeUser.inventory = {};
+        
+        // Если это shadow_note и он в базе хранится как число, 
+        // конвертируем его в объект для корректной работы интерфейса
         if (typeof activeUser.inventory[name] === 'number') {
-            activeUser.inventory[name] = { amount: activeUser.inventory[name] + qty, rarity: rarity };
+            activeUser.inventory[name] = { 
+                amount: activeUser.inventory[name] + qty, 
+                rarity: rarity 
+            };
         } else if (activeUser.inventory[name]) {
             activeUser.inventory[name].amount += qty;
         } else {
-            activeUser.inventory[name] = { amount: qty, rarity: rarity };
+            activeUser.inventory[name] = { 
+                amount: qty, 
+                rarity: rarity 
+            };
         }
+        
         renderInv();
-        showToast(`MATTER INJECTED: ${name}`);
+        showToast(`Injected: ${name} x${qty}`);
     }
     
+    // Не забудьте вызвать initItemSelector() в window.onload или в конце скрипта
+    window.addEventListener('load', () => {
+        initItemSelector();
+        loadUsers();
+    });
+
     function remItem(key) {
         delete activeUser.inventory[key];
         renderInv();
@@ -634,18 +827,25 @@
             "ai_profile.gender": document.getElementById('ai-gender').value,
             "ai_profile.speech_style": document.getElementById('ai-style').value
         };
+
         document.querySelectorAll('[data-res-key]').forEach(el => {
             update[`resources.${el.dataset.resKey}`] = Number(el.value);
         });
         document.querySelectorAll('[data-skill-key]').forEach(el => {
             update[`skills.${el.dataset.skillKey}`] = Number(el.value);
         });
+
         const res = await fetch('/api/update', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ user_id: activeUser._id, updateData: update })
         });
-        if(res.ok) { showToast("DATABASE SYNCED"); closeEdit(); loadUsers(); }
+
+        if(res.ok) {
+            showToast("Sync Complete");
+            closeEdit();
+            loadUsers();
+        }
     }
 
     function openTab(e, id) {
@@ -662,7 +862,8 @@
 
     function showToast(m) {
         const t = document.getElementById('toast');
-        t.innerText = m; t.classList.add('visible');
+        t.innerText = m;
+        t.classList.add('visible');
         setTimeout(() => t.classList.remove('visible'), 3000);
     }
 
@@ -671,18 +872,23 @@
         document.getElementById('count-vips').innerText = allUsers.filter(u => u.is_vip || (u.vip_until && new Date(u.vip_until) > new Date())).length;
     }
 
+    loadUsers();
+
     async function logout() {
-        if (!confirm("TERMINATE SESSION?")) return;
+        if (!confirm("Вы уверены, что хотите выйти из админ-панели?")) return;
+    
         try {
             const res = await fetch('/api/logout', { method: 'POST' });
-            if (res.ok) window.location.href = '/login.html';
-        } catch (e) { window.location.reload(); }
+            if (res.ok) {
+                // После успешного выхода перенаправляем на страницу входа
+                window.location.href = '/login.html'; // Укажите путь к вашей странице логина
+            }
+        } catch (e) {
+            console.error("Logout error:", e);
+            // Если API не ответило, просто перезагружаем страницу (сервер сам выкинет из-за отсутствия сессии)
+            window.location.reload();
+        }
     }
-
-    window.addEventListener('load', () => {
-        initItemSelector();
-        loadUsers();
-    });
 </script>
 </body>
 </html>
